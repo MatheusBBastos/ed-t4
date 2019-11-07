@@ -113,7 +113,7 @@ void putSVGHightlight(FILE *file, double x, double y) {
 
 void putSVGHydrant(Equip h, void *fileVoid) {
     FILE *file = (FILE *) fileVoid;
-    if(Equip_GetHighlighted(h))
+    if (Equip_GetHighlighted(h))
         putSVGHightlight(file, Equip_GetX(h), Equip_GetY(h));
     fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"%lf\" stroke=\"%s\" stroke-width=\"%s\" fill=\"%s\"/>\n",
             Equip_GetX(h),
@@ -130,7 +130,7 @@ void putSVGHydrant(Equip h, void *fileVoid) {
 
 void putSVGTrafficLight(Equip t, void *fileVoid) {
     FILE *file = (FILE *) fileVoid;
-    if(Equip_GetHighlighted(t))
+    if (Equip_GetHighlighted(t))
         putSVGHightlight(file, Equip_GetX(t), Equip_GetY(t));
     fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"%lf\" stroke=\"%s\" stroke-width=\"%s\" fill=\"%s\"/>\n",
             Equip_GetX(t),
@@ -148,7 +148,7 @@ void putSVGTrafficLight(Equip t, void *fileVoid) {
 
 void putSVGCellTower(Equip c, void *fileVoid) {
     FILE *file = (FILE *) fileVoid;
-    if(Equip_GetHighlighted(c))
+    if (Equip_GetHighlighted(c))
         putSVGHightlight(file, Equip_GetX(c), Equip_GetY(c));
     fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"%lf\" stroke=\"%s\" stroke-width=\"%s\" fill=\"%s\"/>\n",
             Equip_GetX(c),

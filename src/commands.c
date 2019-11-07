@@ -12,27 +12,32 @@ void writeObject(Object o, void *param) {
         putSVGCircle(svgFile, Object_GetContent(o), Object_GetColor1(o), Object_GetColor2(o), Object_GetStroke(o));
     } else if (Object_GetType(o) == OBJ_RECT) {
         putSVGRectangle(svgFile, Object_GetContent(o), Object_GetColor1(o), Object_GetColor2(o), Object_GetStroke(o));
-    } else if (Object_GetType(o) == OBJ_TEXT) {
-        putSVGText(svgFile, atof(Object_GetColor1(o)), atof(Object_GetColor2(o)), Object_GetContent(o));
     }
+}
+
+void writeText(Text text, void *param) {
+    FILE *svgFile = (FILE *) param;
+    putSVGText(svgFile, Text_GetX(text), Text_GetY(text), Text_GetString(text));
 }
 
 void writeSVG(FILE *outputSVGFile, bool svgTag) {
     if (svgTag)
         putSVGStart(outputSVGFile);
-    StList_Execute(getObjList(), writeObject, outputSVGFile);
-    StList_Execute(getBlockList(), putSVGBlock, outputSVGFile);
-    StList_Execute(getBuildingList(), putSVGBuilding, outputSVGFile);
-    StList_Execute(getWallList(), putSVGWall, outputSVGFile);
-    StList_Execute(getHydList(), putSVGHydrant, outputSVGFile);
-    StList_Execute(getTLightList(), putSVGTrafficLight, outputSVGFile);
-    StList_Execute(getCTowerList(), putSVGCellTower, outputSVGFile);
+    RBTree_Execute(getObjTree(), writeObject, outputSVGFile);
+    RBTree_Execute(getTextTree(), writeText, outputSVGFile);
+    RBTree_Execute(getBlockTree(), putSVGBlock, outputSVGFile);
+    RBTree_Execute(getBuildingTree(), putSVGBuilding, outputSVGFile);
+    RBTree_Execute(getWallTree(), putSVGWall, outputSVGFile);
+    RBTree_Execute(getHydTree(), putSVGHydrant, outputSVGFile);
+    RBTree_Execute(getTLightTree(), putSVGTrafficLight, outputSVGFile);
+    RBTree_Execute(getCTowerTree(), putSVGCellTower, outputSVGFile);
     if (svgTag)
         putSVGEnd(outputSVGFile);
 }
 
 void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE *queryFile, FILE *txtFile, char outputDir[], char svgFileName[]) {
-    initializeLists();
+    initializeTrees();
+    initializeTables();
     
     processGeometry(entryFile);
     writeSVG(outputSVGFile, true);
@@ -47,7 +52,8 @@ void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE 
         putSVGEnd(outputQryFile);
     }
 
-    destroyLists();
+    destroyTables();
+    destroyTrees();
 }
 
 bool processGeometry(FILE *entryFile) {
@@ -79,7 +85,7 @@ bool processGeometry(FILE *entryFile) {
     char wStrkRectangle[16] = "2";
 
     char buffer[128];
-    while(fgets(buffer, 100, entryFile) != NULL) {
+    while (fgets(buffer, 100, entryFile) != NULL) {
         char type[16];
         sscanf(buffer, "%15s", type);
         if (strcmp(type, "nx") == 0) {
@@ -94,7 +100,7 @@ bool processGeometry(FILE *entryFile) {
                 nt = nt1;
                 np = np1;
                 nw = nw1;
-                resizeLists(nx, nb, nh, nc, nt, np, nw);
+                //resizeLists(nx, nb, nh, nc, nt, np, nw);
             }
         } else if (strcmp(type, "c") == 0) {
             char id[8];
@@ -105,19 +111,10 @@ bool processGeometry(FILE *entryFile) {
             Circle c = Circle_Create(radius, x, y);
             Object o = Object_Create(id, c, OBJ_CIRC, color1, color2, wStrkCircle);
 
-            // #include "modules/data_structures/redblack_tree.h"
+            Object replacedObject = RBTree_Insert(getObjTree(), Circle_GetPoint(c), o);
+            if (replacedObject != NULL)
+                Object_Destroy(replacedObject);
 
-            // Object replacedObject = RBTree_Insert(getObjTree(), Object_GetId(o), o);
-
-            // if (replacedObject != NULL)
-            //     Object_Destroy(replacedObject);
-
-            if (StList_Add(getObjList(), o) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Object_Destroy(o);
-            }
         } else if (strcmp(type, "r") == 0) {
             char id[8];
             double width, height, x, y;
@@ -127,25 +124,21 @@ bool processGeometry(FILE *entryFile) {
             Rectangle r = Rectangle_Create(width, height, x, y);
             Object o = Object_Create(id, r, OBJ_RECT, color1, color2, wStrkRectangle);
 
-            if (StList_Add(getObjList(), o) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Object_Destroy(o);
-            }
+            Object replacedObject = RBTree_Insert(getObjTree(), Rectangle_GetPoint(r), o);
+            if (replacedObject != NULL)
+                Object_Destroy(replacedObject);
+
         } else if (strcmp(type, "t") == 0) {
-            char x[24], y[24];
-            char *text = malloc(128 * sizeof(char));
-            sscanf(buffer + 2, "%23s %23s %128[^\n]", x, y, text);
+            double x, y;
+            char string[128];
+            sscanf(buffer + 2, "%lf %lf %128[^\n]", &x, &y, string);
 
-            Object o = Object_Create("text", text, OBJ_TEXT, x, y, "");
+            Text t = Text_Create(x, y, string);
 
-            if (StList_Add(getObjList(), o) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Object_Destroy(o);
-            }
+            Text replacedText = RBTree_Insert(getTextTree(), Text_GetPoint(t), t);
+            if (replacedText != NULL)
+                Text_Destroy(replacedText);
+
         } else if (strcmp(type, "cq") == 0) {
             sscanf(buffer + 3, "%23s %23s %15s", cFillBlock, cStrkBlock, wStrkBlock);
         } else if (strcmp(type, "ch") == 0) {
@@ -160,26 +153,26 @@ bool processGeometry(FILE *entryFile) {
             sscanf(buffer + 2, "%15s %lf %lf %lf %lf", cep, &x, &y, &w, &h);
 
             Block block = Block_Create(cep, x, y, w, h, cFillBlock, cStrkBlock, wStrkBlock);
-            
-            if (StList_Add(getBlockList(), block) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Block_Destroy(block);
-            }
+
+            Block replacedBlock = RBTree_Insert(getBlockTree(), Block_GetPoint(block), block);
+            if (replacedBlock != NULL)
+                Block_Destroy(replacedBlock);
+
+            HashTable_Insert(getBlockTable(), Block_GetCep(block), block);
+
         } else if (strcmp(type, "h") == 0) {
             char id[16];
             double x, y;
             sscanf(buffer + 2, "%15s %lf %lf", id, &x, &y);
             
             Equip hydrant = Equip_Create(id, x, y, cFillHydrant, cStrkHydrant, wStrkHydrant);
-            
-            if (StList_Add(getHydList(), hydrant) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Equip_Destroy(hydrant);
-            }
+
+            Equip replacedEquip = RBTree_Insert(getHydTree(), Equip_GetPoint(hydrant), hydrant);
+            if (replacedEquip != NULL)
+                Equip_Destroy(replacedEquip);
+
+            HashTable_Insert(getHydTable(), Equip_GetID(hydrant), hydrant);
+
         } else if (strcmp(type, "s") == 0) {
             char id[16];
             double x, y;
@@ -187,12 +180,12 @@ bool processGeometry(FILE *entryFile) {
             
             Equip trLight = Equip_Create(id, x, y, cFillTrafficLight, cStrkTrafficLight, wStrkTrafficLight);
             
-            if (StList_Add(getTLightList(), trLight) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Equip_Destroy(trLight);
-            }
+            Equip replacedEquip = RBTree_Insert(getTLightTree(), Equip_GetPoint(trLight), trLight);
+            if (replacedEquip != NULL)
+                Equip_Destroy(replacedEquip);
+
+            HashTable_Insert(getTLightTable(), Equip_GetID(trLight), trLight);
+
         } else if (strcmp(type, "rb") == 0) {
             char id[16];
             double x, y;
@@ -200,19 +193,19 @@ bool processGeometry(FILE *entryFile) {
             
             Equip cellTower = Equip_Create(id, x, y, cFillCellTower, cStrkCellTower, wStrkCellTower);
             
-            if (StList_Add(getCTowerList(), cellTower) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Equip_Destroy(cellTower);
-            }
+            Equip replacedEquip = RBTree_Insert(getCTowerTree(), Equip_GetPoint(cellTower), cellTower);
+            if (replacedEquip != NULL)
+                Equip_Destroy(replacedEquip);
+
+            HashTable_Insert(getCTowerTable(), Equip_GetID(cellTower), cellTower);
+
         } else if (strcmp(type, "prd") == 0) {
             char cep[16];
             char face;
             double num, f, p, mrg;
             sscanf(buffer + 3, "%15s %c %lf %lf %lf %lf", cep, &face, &num, &f, &p, &mrg);
 
-            Block b = StList_Find(getBlockList(), compareBlockToCep, cep);
+            Block b = HashTable_Find(getBlockTable(), cep);
             if (b == NULL) {
                 #ifdef __DEBUG__
                 printf("Erro: Quadra de CEP %s não encontrada!\n", cep);
@@ -251,23 +244,20 @@ bool processGeometry(FILE *entryFile) {
             }
 
             Building building = Building_Create(x, y, w, h, num);
-            if (StList_Add(getBuildingList(), building) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
-                Building_Destroy(building);
-            }
+
+            Building replacedBuilding = RBTree_Insert(getBuildingTree(), Building_GetPoint(building), building);
+            if (replacedBuilding != NULL)
+                Building_Destroy(replacedBuilding);
+
         } else if (strcmp(type, "mur") == 0) {
             double x1, y1, x2, y2;
             sscanf(buffer + 3, "%lf %lf %lf %lf", &x1, &y1, &x2, &y2);
 
             Wall wall = Wall_Create(x1, y1, x2, y2);
-            if (StList_Add(getWallList(), wall) == false) {
-                #ifdef __DEBUG__
-                printf("Erro: Número máximo de elementos ultrapassado!\n");
-                #endif
+
+            Wall replacedWall = RBTree_Insert(getWallTree(), Wall_GetPoint1(wall), wall);
+            if (replacedWall != NULL)
                 Wall_Destroy(wall);
-            }
         }
     }
     return true;
@@ -275,7 +265,7 @@ bool processGeometry(FILE *entryFile) {
 
 bool processQuery(FILE *queryFile, FILE *outputFile, FILE *txtFile, char outputDir[], char svgFileName[]) {
     char buffer[128];
-    while(fgets(buffer, 128, queryFile) != NULL) {
+    while (fgets(buffer, 128, queryFile) != NULL) {
 
         int len = strlen(buffer);
         if (buffer[len - 1] != '\n') {

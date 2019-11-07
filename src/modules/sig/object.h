@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <math.h>
 #include <string.h>
+#include "circle.h"
+#include "rectangle.h"
 
 typedef enum ObjectType {
     OBJ_CIRC,

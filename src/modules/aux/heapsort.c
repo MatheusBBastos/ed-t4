@@ -5,7 +5,7 @@ void heapsort(Item *a, int n, int ate, int (*cmp)(const void*, const void*)) {
     int i = n / 2, pai, filho;
     Item t;
     int cont = 0;
-    while(true) {
+    while (true) {
         if (i > 0) {
             i--;
             t = a[i];
@@ -18,9 +18,9 @@ void heapsort(Item *a, int n, int ate, int (*cmp)(const void*, const void*)) {
         pai = i;
         filho = i * 2 + 1;
         while (filho < n) {
-            if ((filho + 1 < n)  &&  (cmp(&a[filho + 1], &a[filho])) > 0)
+            if ((filho + 1 < n)  &&  (cmp(a[filho + 1], a[filho])) > 0)
                 filho++;
-            if (cmp(&a[filho], &t) > 0) {
+            if (cmp(a[filho], t) > 0) {
                 Item temp = a[pai];
                 a[pai] = a[filho];
                 a[filho] = temp;

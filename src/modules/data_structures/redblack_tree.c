@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <assert.h>
 
 #include "redblack_tree.h"
 
@@ -19,7 +18,8 @@ typedef struct node_t {
 typedef struct rbtree_t {
     NodeImpl nil;
     NodeImpl root;
-    int (*compare)(Key, Key);
+    int (*compare)(const void*, const void*);
+    int length;
 } *RBTreeImpl;
 
 static void _fixUp(RBTreeImpl tree, NodeImpl node);
@@ -28,14 +28,20 @@ static void _rightRotate(RBTreeImpl tree, NodeImpl node);
 static void _finishRemoving(RBTreeImpl tree, NodeImpl node);
 static void _destroyNode(RBTreeImpl tree, NodeImpl node, void (*destroy)(Value));
 
-RBTree RBTree_Create(int (*compare)(Key, Key)) {
+RBTree RBTree_Create(int (*compare)(const void*, const void*)) {
     RBTreeImpl tree = malloc(sizeof(struct rbtree_t));
     tree->nil = malloc(sizeof(struct node_t));
     tree->nil->color = BLACK;
     tree->nil->key = NULL;
     tree->root = tree->nil;
     tree->compare = compare;
+    tree->length = 0;
     return tree;
+}
+
+int RBTree_GetLength(RBTree treeVoid) {
+    RBTreeImpl tree = (RBTreeImpl) treeVoid;
+    return tree->length;
 }
 
 Value RBTree_Insert(RBTree treeVoid, Key key, Value value) {
@@ -77,6 +83,7 @@ Value RBTree_Insert(RBTree treeVoid, Key key, Value value) {
         }
     }
     _fixUp(tree, node);
+    tree->length++;
     return NULL;
 }
 
@@ -114,47 +121,21 @@ Value RBTree_Remove(RBTree treeVoid, Key key) {
 
     Value value = node->value;
     free(node);
+    tree->length--;
     return value;
 }
 
-// TODO: remover (debug)
-static int d = 0;
-
-// TODO: tipo void (retorno int só para debug)
-static int _executeNode(RBTreeImpl tree, NodeImpl node, void (*func)(Value, void*), void *param, int depth) {
-    if (node == tree->nil) {
-        // TODO: remover (debug)
-        printf("black height: %d\n", depth + 1);
-        if (d != 0) {
-            assert(depth + 1 == d);
-        } else {
-            d = depth + 1;
-        }
-        return 0;
-    } else {
-        // TODO: remover (debug)
-        int s = 0;
-        if (node->color == RED) {
-            assert(node->left->color == BLACK);
-            assert(node->right->color == BLACK);
-        }
-        s += _executeNode(tree, node->left, func, param, depth + (node->color == BLACK ? 1 : 0));
-        printf("key: %d; left: %s; right: %s; color: %s, depth: %d\n", *((int*) node->key), 
-                node->left == tree->nil ? "nil" : "node", 
-                node->right == tree->nil ? "nil" : "node",
-                node->color == RED ? "red" : "black",
-                depth);
+static void _executeNode(RBTreeImpl tree, NodeImpl node, void (*func)(Value, void*), void *param) {
+    if (node != tree->nil) {
+        _executeNode(tree, node->left, func, param);
         func(node->value, param);
-        s++;
-        s += _executeNode(tree, node->right, func, param, depth + (node->color == BLACK ? 1 : 0));
-        return s;
+        _executeNode(tree, node->right, func, param);
     }
 }
 
 void RBTree_Execute(RBTree treeVoid, void (*func)(Value, void*), void *param) {
     RBTreeImpl tree = (RBTreeImpl) treeVoid;
-    int size = _executeNode(tree, tree->root, func, param, 0);
-    printf("SIZE: %d\n", size);
+    _executeNode(tree, tree->root, func, param);
 }
 
 void RBTree_Destroy(RBTree treeVoid, void (*destroy)(Value)) {
@@ -209,6 +190,61 @@ Key RBTreeN_GetKey(RBTree treeVoid, Node nodeVoid) {
 Value RBTreeN_GetValue(RBTree treeVoid, Node nodeVoid) {
     NodeImpl node = (NodeImpl) nodeVoid;
     return node->value;
+}
+
+Value _findWhere(RBTreeImpl tree, NodeImpl node, bool compFunc(void*, void*), void *comparingField) {
+    if (node == tree->nil)
+        return NULL;
+    
+    if (compFunc(node->value, comparingField))
+        return node->value;
+    
+    Value val;
+    val = _findWhere(tree, node->left, compFunc, comparingField);
+    if (val != NULL)
+        return val;
+    val = _findWhere(tree, node->right, compFunc, comparingField);
+    if (val != NULL)
+        return val;
+    
+    return NULL;
+}
+
+Value RBTree_FindWhere(RBTree treeVoid, bool compFunc(void*, void*), void *comparingField) {
+    RBTreeImpl tree = (RBTreeImpl) treeVoid;
+    return _findWhere(tree, tree->root, compFunc, comparingField);
+}
+
+Node RBTree_GetFirstNode(RBTree treeVoid) {
+    RBTreeImpl tree = (RBTreeImpl) treeVoid;
+    NodeImpl currentNode = tree->root;
+    if (currentNode == tree->nil)
+        return NULL;
+    while (currentNode->left != tree->nil)
+        currentNode = currentNode->left;
+    return currentNode;
+}
+
+Node RBTreeN_GetSuccessor(RBTree treeVoid, Node nodeVoid) {
+    RBTreeImpl tree = (RBTreeImpl) treeVoid;
+    NodeImpl node = (NodeImpl) nodeVoid;
+
+    NodeImpl currentNode = node->right;
+    if (currentNode == tree->nil) {
+        currentNode = node;
+        while (currentNode->parent != tree->nil) {
+            if (currentNode->parent->left == currentNode) {
+                return currentNode->parent;
+            } else {
+                currentNode = currentNode->parent;
+            }
+        }
+        return NULL;
+    }
+    
+    while (currentNode->left != tree->nil)
+        currentNode = currentNode->left;
+    return currentNode;
 }
 
 static void _leftRotate(RBTreeImpl tree, NodeImpl node) {

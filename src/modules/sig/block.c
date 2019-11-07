@@ -2,8 +2,7 @@
 
 typedef struct block_t {
     char cep[16];
-    double x;
-    double y;
+    Point point;
     double w;
     double h;
     char cFill[24];
@@ -15,8 +14,7 @@ Block Block_Create(char cep[], double x, double y, double w, double h,
                    char cFill[], char cStroke[], char wStroke[]) {
     BlockPtr block = malloc(sizeof(struct block_t));
     strcpy(block->cep, cep);
-    block->x = x;
-    block->y = y;
+    block->point = Point_Create(x, y);
     block->w = w;
     block->h = h;
     strcpy(block->cFill, cFill);
@@ -52,22 +50,22 @@ char *Block_GetWStroke(Block blockVoid) {
 
 double Block_GetX(Block blockVoid) {
     BlockPtr block = (BlockPtr) blockVoid;
-    return block->x;
+    return Point_GetX(block->point);
 }
 
 void Block_SetX(Block blockVoid, double x) {
     BlockPtr block = (BlockPtr) blockVoid;
-    block->x = x;
+    Point_SetX(block->point, x);
 }
 
 double Block_GetY(Block blockVoid) {
     BlockPtr block = (BlockPtr) blockVoid;
-    return block->y;
+    return Point_GetY(block->point);
 }
 
 void Block_SetY(Block blockVoid, double y) {
     BlockPtr block = (BlockPtr) blockVoid;
-    block->y = y;
+    Point_SetY(block->point, y);
 }
 
 double Block_GetW(Block blockVoid) {
@@ -82,8 +80,8 @@ double Block_GetH(Block blockVoid) {
 
 bool Block_GetCoordinates(Block blockVoid, char face, double num, double *x, double *y) {
     BlockPtr block = (BlockPtr) blockVoid;
-    *x = block->x;
-    *y = block->y;
+    *x = Point_GetX(block->point);
+    *y = Point_GetY(block->point);
 
     if (face == 'N') {
         *x += num;
@@ -102,7 +100,13 @@ bool Block_GetCoordinates(Block blockVoid, char face, double num, double *x, dou
     return true;
 }
 
+Point Block_GetPoint(Block blockVoid) {
+    BlockPtr block = (BlockPtr) blockVoid;
+    return block->point;
+}
+
 void Block_Destroy(Block blockVoid) {
     BlockPtr block = (BlockPtr) blockVoid;
+    Point_Destroy(block->point);
     free(block);
 }

@@ -2,6 +2,7 @@
 #define CIRCLE_H
 
 #include <stdlib.h>
+#include "../aux/point.h"
 
 typedef void *Circle;
 
@@ -18,6 +19,8 @@ void Circle_SetRadius(Circle circle, double radius);
 void Circle_SetX(Circle circle, double x);
 
 void Circle_SetY(Circle circle, double y);
+
+Point Circle_GetPoint(Circle circle);
 
 void Circle_Destroy(Circle circle);
 

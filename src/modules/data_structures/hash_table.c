@@ -3,7 +3,6 @@
 static inline unsigned long long int _hashFunc(char *key);
 
 typedef struct node_t {
-    bool deleted;
     char *key;
     void *value;
     struct node_t *next;
@@ -25,7 +24,6 @@ HashTable HashTable_Create(int size) {
 void *HashTable_Insert(HashTable tableVoid, char *key, void *value) {
     HashTablePtr table = (HashTablePtr) tableVoid;
     Node node = malloc(sizeof(struct node_t));
-    node->deleted = false;
     node->next = NULL;
     node->key = key;
     node->value = value;
@@ -39,6 +37,7 @@ void *HashTable_Insert(HashTable tableVoid, char *key, void *value) {
             if (strcmp(currentNode->key, key) == 0) {
                 void *oldVal = currentNode->value;
                 currentNode->value = value;
+                free(node);
                 return oldVal;
             }
             pastNode = currentNode;
@@ -93,7 +92,8 @@ void HashTable_Destroy(HashTable tableVoid, void (*destroy)(void *)) {
     for (int i = 0; i < table->size; i++) {
         Node currentNode = table->nodes[i];
         while (currentNode != NULL) {
-            destroy(currentNode->value);
+            if (destroy != NULL)
+                destroy(currentNode->value);
             Node nextNode = currentNode->next;
             free(currentNode);
             currentNode = nextNode;

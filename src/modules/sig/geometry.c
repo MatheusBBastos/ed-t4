@@ -15,12 +15,12 @@ double clamp(double value, double a, double b) {
 }
 
 bool checkOverlap(Object a, Object b) {
-    if(Object_GetType(a) == OBJ_CIRC && Object_GetType(b) == OBJ_CIRC) {
+    if (Object_GetType(a) == OBJ_CIRC && Object_GetType(b) == OBJ_CIRC) {
         Circle c1 = (Circle) Object_GetContent(a);
         Circle c2 = (Circle) Object_GetContent(b);
         double dist = euclideanDistance(Circle_GetX(c1), Circle_GetY(c1), Circle_GetX(c2), Circle_GetY(c2));
         return (dist < Circle_GetRadius(c1) + Circle_GetRadius(c2));
-    } else if(Object_GetType(a) == OBJ_RECT && Object_GetType(b) == OBJ_RECT) {
+    } else if (Object_GetType(a) == OBJ_RECT && Object_GetType(b) == OBJ_RECT) {
         Rectangle r1 = (Rectangle) Object_GetContent(a);
         Rectangle r2 = (Rectangle) Object_GetContent(b);
         return Rectangle_GetX(r1) < Rectangle_GetX(r2) + Rectangle_GetWidth(r2) &&
@@ -29,7 +29,7 @@ bool checkOverlap(Object a, Object b) {
                Rectangle_GetY(r1) + Rectangle_GetHeight(r1) > Rectangle_GetY(r2);
     } else {
         // Deixar o a como círculo e b como retângulo
-        if(Object_GetType(a) == OBJ_RECT) {
+        if (Object_GetType(a) == OBJ_RECT) {
             Object temp = a;
             a = b;
             b = temp;
@@ -47,7 +47,7 @@ bool checkOverlap(Object a, Object b) {
 }
 
 bool checkInside(Object obj, double x, double y) {
-    if(Object_GetType(obj) == OBJ_CIRC) {
+    if (Object_GetType(obj) == OBJ_CIRC) {
         Circle circ = (Circle) Object_GetContent(obj);
         return euclideanDistance(x, y, Circle_GetX(circ), Circle_GetY(circ)) < Circle_GetRadius(circ);
     } else {
@@ -58,7 +58,7 @@ bool checkInside(Object obj, double x, double y) {
 }
 
 void getCenter(Object obj, double *x, double *y) {
-    if(Object_GetType(obj) == OBJ_CIRC) {
+    if (Object_GetType(obj) == OBJ_CIRC) {
         Circle circ = (Circle) Object_GetContent(obj);
         *x = Circle_GetX(circ);
         *y = Circle_GetY(circ);
@@ -70,7 +70,7 @@ void getCenter(Object obj, double *x, double *y) {
 }
 
 void getSurroundingRect(Object obj, Rectangle resultRect) {
-    if(Object_GetType(obj) == OBJ_CIRC) {
+    if (Object_GetType(obj) == OBJ_CIRC) {
         Circle circ = (Circle) Object_GetContent(obj);
         Rectangle_SetX(resultRect, Circle_GetX(circ) - Circle_GetRadius(circ));
         Rectangle_SetY(resultRect, Circle_GetY(circ) - Circle_GetRadius(circ));

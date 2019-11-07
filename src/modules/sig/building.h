@@ -34,6 +34,8 @@ void Building_SetH(Building building, double h);
 
 void Building_SetNum(Building building, double num);
 
+Point Building_GetPoint(Building building);
+
 void Building_Destroy(Building building);
 
 #endif

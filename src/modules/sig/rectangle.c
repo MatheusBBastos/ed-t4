@@ -1,15 +1,15 @@
 #include "rectangle.h"
 
 typedef struct rectangle_t {
-    double width, height, x, y;
+    Point point;
+    double width, height;
 } *RectanglePtr;
 
 Rectangle Rectangle_Create(double width, double height, double x, double y) {
     RectanglePtr newRect = malloc(sizeof(struct rectangle_t));
     newRect->width = width;
     newRect->height = height;
-    newRect->x = x;
-    newRect->y = y;
+    newRect->point = Point_Create(x, y);
     return newRect;
 }
 
@@ -25,12 +25,12 @@ double Rectangle_GetHeight(Rectangle rectangleVoid) {
 
 double Rectangle_GetX(Rectangle rectangleVoid) {
     RectanglePtr rectangle = (RectanglePtr) rectangleVoid;
-    return rectangle->x;
+    return Point_GetX(rectangle->point);
 }
 
 double Rectangle_GetY(Rectangle rectangleVoid) {
     RectanglePtr rectangle = (RectanglePtr) rectangleVoid;
-    return rectangle->y;
+    return Point_GetY(rectangle->point);
 }
 
 void Rectangle_SetWidth(Rectangle rectangleVoid, double width) {
@@ -45,15 +45,21 @@ void Rectangle_SetHeight(Rectangle rectangleVoid, double height) {
 
 void Rectangle_SetX(Rectangle rectangleVoid, double x) {
     RectanglePtr rectangle = (RectanglePtr) rectangleVoid;
-    rectangle->x = x;
+    Point_SetX(rectangle->point, x);
 }
 
 void Rectangle_SetY(Rectangle rectangleVoid, double y) {
     RectanglePtr rectangle = (RectanglePtr) rectangleVoid;
-    rectangle->y = y;
+    Point_SetY(rectangle->point, y);
+}
+
+Point Rectangle_GetPoint(Rectangle rectangleVoid) {
+    RectanglePtr rectangle = (RectanglePtr) rectangleVoid;
+    return rectangle->point;
 }
 
 void Rectangle_Destroy(Rectangle rectangleVoid) {
     RectanglePtr rectangle = (RectanglePtr) rectangleVoid;
+    Point_Destroy(rectangle->point);
     free(rectangle);
 }

@@ -1,8 +1,7 @@
 #include "building.h"
 
 typedef struct building_t {
-    double x;
-    double y;
+    Point point;
     double w;
     double h;
     double num;
@@ -10,8 +9,7 @@ typedef struct building_t {
 
 Building Building_Create(double x, double y, double w, double h, double num) {
     BuildingPtr building = malloc(sizeof(struct building_t));
-    building->x = x;
-    building->y = y;
+    building->point = Point_Create(x, y);
     building->w = w;
     building->h = h;
     building->num = num;
@@ -21,10 +19,10 @@ Building Building_Create(double x, double y, double w, double h, double num) {
 Segment *Building_PutSegments(Building buildingVoid, Segment *vector, double xSource, double ySource) {
     BuildingPtr b = (BuildingPtr) buildingVoid;
 
-    double xMin = b->x;
-    double xMax = b->x + b->w;
-    double yMin = b->y;
-    double yMax = b->y + b->h;
+    double xMin = Point_GetX(b->point);
+    double xMax = xMin + b->w;
+    double yMin = Point_GetY(b->point);
+    double yMax = yMin + b->h;
     
     Segment southSeg;
     if (yMin != ySource) {
@@ -51,11 +49,11 @@ Segment *Building_PutSegments(Building buildingVoid, Segment *vector, double xSo
     }
 
     // Intersecção com a reta
-    if (b->x < xSource && ySource > b->y && ySource < b->y + b->h) {
+    if (xMin < xSource && ySource > yMin && ySource < yMax) {
         // Segmento leste
-        vector = Segment_Cut(eastSeg, vector, b->x, xSource, ySource);
+        vector = Segment_Cut(eastSeg, vector, xMin, xSource, ySource);
         // Segmento oeste
-        vector = Segment_Cut(westSeg, vector, b->x + b->w, xSource, ySource);
+        vector = Segment_Cut(westSeg, vector, xMax, xSource, ySource);
     }
 
     return vector;
@@ -63,12 +61,12 @@ Segment *Building_PutSegments(Building buildingVoid, Segment *vector, double xSo
 
 double Building_GetX(Building buildingVoid) {
     BuildingPtr building = (BuildingPtr) buildingVoid;
-    return building->x;
+    return Point_GetX(building->point);
 }
 
 double Building_GetY(Building buildingVoid) {
     BuildingPtr building = (BuildingPtr) buildingVoid;
-    return building->y;
+    return Point_GetY(building->point);
 }
 
 double Building_GetW(Building buildingVoid) {
@@ -88,12 +86,12 @@ double Building_GetNum(Building buildingVoid) {
 
 void Building_SetX(Building buildingVoid, double x) {
     BuildingPtr building = (BuildingPtr) buildingVoid;
-    building->x = x;
+    Point_SetX(building->point, x);
 }
 
 void Building_SetY(Building buildingVoid, double y) {
     BuildingPtr building = (BuildingPtr) buildingVoid;
-    building->y = y;
+    Point_SetY(building->point, y);
 }
 
 void Building_SetW(Building buildingVoid, double w) {
@@ -111,7 +109,13 @@ void Building_SetNum(Building buildingVoid, double num) {
     building->num = num;
 }
 
+Point Building_GetPoint(Building buildingVoid) {
+    BuildingPtr building = (BuildingPtr) buildingVoid;
+    return building->point;
+}
+
 void Building_Destroy(Building buildingVoid) {
     BuildingPtr building = (BuildingPtr) buildingVoid;
+    Point_Destroy(building->point);
     free(building);
 }

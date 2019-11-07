@@ -51,6 +51,9 @@ char *Object_GetId(Object objectVoid) {
 
 void Object_Destroy(Object objectVoid) {
     ObjectPtr object = (ObjectPtr) objectVoid;
-    free(object->content);
+    if (object->type == OBJ_CIRC)
+        Circle_Destroy(object->content);
+    else if (object->type == OBJ_RECT)
+        Rectangle_Destroy(object->content);
     free(object);
 }

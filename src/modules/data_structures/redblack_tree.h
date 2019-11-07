@@ -1,8 +1,6 @@
 #ifndef RBTREE_H
 #define RBTREE_H
 
-// TODO: remover (debug)
-#include <stdio.h>
 #include <stdbool.h>
 
 typedef void *RBTree;
@@ -11,7 +9,10 @@ typedef void *Value;
 typedef void *Node;
 
 // Cria uma árvore rubro-negra com a função de comparação (ex: strcmp)
-RBTree RBTree_Create(int (*compare)(Key, Key));
+RBTree RBTree_Create(int (*compare)(const void*, const void*));
+
+// Retorna o tamanho atual da árvore
+int RBTree_GetLength(RBTree tree);
 
 // Insere um par chave-valor na árvore
 Value RBTree_Insert(RBTree tree, Key key, Value value);
@@ -29,6 +30,12 @@ void RBTree_Execute(RBTree tree, void (*func)(Value, void*), void *param);
 // Destrói a árvore, executando destroy em todos os valores
 void RBTree_Destroy(RBTree tree, void (*destroy)(Value));
 
+// Retorna o primeiro nó na ordem de comparação (NULL se árvore for vazia)
+Node RBTree_GetFirstNode(RBTree tree);
+
+// Retorna o sucessor do node (NULL se não existir)
+Node RBTreeN_GetSuccessor(RBTree tree, Node node);
+
 // Retorna o nó raiz da árvore (NULL se não existir)
 Node RBTree_GetRoot(RBTree tree);
 
@@ -43,5 +50,8 @@ Key RBTreeN_GetKey(RBTree tree, Node node);
 
 // Retorna o valor do nó
 Value RBTreeN_GetValue(RBTree tree, Node node);
+
+// Procura o primeiro elemento val que faz compFunc(val, comparingField) retornar true
+Value RBTree_FindWhere(RBTree treeVoid, bool compFunc(void*, void*), void *comparingField);
 
 #endif

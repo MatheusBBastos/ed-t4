@@ -5,21 +5,10 @@ typedef struct BBParameters {
     char *color;
 } BBParameters;
 
-typedef struct InfosCbq {
-    double dInfos[3];
-    char *cStrk;
-    FILE *txtFile;
-} InfosCbq;
-
-typedef struct InfosTrns {
-    double x, y, w, h, dx, dy;
-    FILE *txtFile;
-} InfosTrns;
-
 static void insertBoundingBoxElement(void *o, void *parametersVoid) {
     BBParameters *params = (BBParameters*) parametersVoid;
     FILE *file = params->file;
-    if(Object_GetType(o) == OBJ_CIRC) {
+    if (Object_GetType(o) == OBJ_CIRC) {
         putSVGCircle(file, Object_GetContent(o), Object_GetColor1(o), Object_GetColor2(o), Object_GetStroke(o));
         
         Rectangle surroundingRect = Rectangle_Create(0, 0, 0, 0);
@@ -27,7 +16,7 @@ static void insertBoundingBoxElement(void *o, void *parametersVoid) {
         
         putSVGRectangle(file, surroundingRect, params->color, "none", "2");
         Rectangle_Destroy(surroundingRect);
-    } else if(Object_GetType(o) == OBJ_RECT) {
+    } else if (Object_GetType(o) == OBJ_RECT) {
         putSVGRectangle(file, Object_GetContent(o), Object_GetColor1(o), Object_GetColor2(o), Object_GetStroke(o));
         Rectangle rect = Object_GetContent(o);
         double cx, cy;
@@ -57,59 +46,9 @@ static bool blockInDistanceL2(void *block, void *dVoid) {
     return topLeftCornerInside && topRightCornerInside && bottomLeftCornerInside && bottomRightCornerInside;
 }
 
-static void putBlockInfo(void *block, void *fileVoid) {
-    FILE *file = (FILE *) fileVoid;
-    fprintf(fileVoid, "%s ", Block_GetCep(block));
-}
-
-static void changeBlockColor(void *block, void *infosVoid) {
-    InfosCbq *infos = (InfosCbq *) infosVoid;
-    if(blockInDistanceL2(block, (void *) infos->dInfos)) {
-        fprintf(infos->txtFile, "\n\t- %s", Block_GetCep(block));
-        Block_SetCStroke(block, infos->cStrk);
-    }
-}
-
-static void translateBlock(void *block, void *infosVoid) {
-    InfosTrns *infos = (InfosTrns *) infosVoid;
-    if(Block_GetX(block) >= infos->x && Block_GetX(block) + Block_GetW(block) <= infos->x + infos->w &&
-          Block_GetY(block) >= infos->y && Block_GetY(block) + Block_GetH(block) <= infos->y + infos->h) {
-        fprintf(infos->txtFile, "\n%s:"
-                                "\n\tPosição anterior: (%.2lf, %.2lf)"
-                                "\n\tNova posição: (%.2lf, %.2lf)",
-                                Block_GetCep(block), Block_GetX(block), Block_GetY(block),
-                                Block_GetX(block) + infos->dx, Block_GetY(block) + infos->dy);
-        Block_SetX(block, Block_GetX(block) + infos->dx);
-        Block_SetY(block, Block_GetY(block) + infos->dy);
-    }
-}
-
-static void translateEquip(void *equip, void *infosVoid) {
-    InfosTrns *infos = (InfosTrns *) infosVoid;
-    if(Equip_GetX(equip) >= infos->x && Equip_GetX(equip) <= infos->x + infos->w &&
-          Equip_GetY(equip) >= infos->y && Equip_GetY(equip) <= infos->y + infos->h) {
-        fprintf(infos->txtFile, "\n%s:"
-                                "\n\tPosição anterior: (%.2lf, %.2lf)"
-                                "\n\tNova posição: (%.2lf, %.2lf)",
-                                Equip_GetID(equip), Equip_GetX(equip), Equip_GetY(equip),
-                                Equip_GetX(equip) + infos->dx, Equip_GetY(equip) + infos->dy);
-        Equip_SetX(equip, Equip_GetX(equip) + infos->dx);
-        Equip_SetY(equip, Equip_GetY(equip) + infos->dy);
-    }
-}
-
-static void translateBuilding(void *building, void *infosVoid) {
-    InfosTrns *infos = (InfosTrns *) infosVoid;
-    if(Building_GetX(building) >= infos->x && Building_GetX(building) + Building_GetW(building) <= infos->x + infos->w &&
-          Building_GetY(building) >= infos->y && Building_GetY(building) + Building_GetH(building) <= infos->y + infos->h) {
-        Building_SetX(building, Building_GetX(building) + infos->dx);
-        Building_SetY(building, Building_GetY(building) + infos->dy);
-    }
-}
-
 bool Query_Overlaps(FILE *txtFile, FILE *outputFile, char idA[], char idB[]) {
-    Object a = StList_Find(getObjList(), compareObjectToId, idA);
-    Object b = StList_Find(getObjList(), compareObjectToId, idB);
+    Object a = HashTable_Find(getObjTable(), idA);
+    Object b = HashTable_Find(getObjTable(), idB);
     if (a == NULL || b == NULL) {
         #ifdef __DEBUG__
         printf("Erro: Elemento não encontrado!\n");
@@ -142,7 +81,7 @@ bool Query_Overlaps(FILE *txtFile, FILE *outputFile, char idA[], char idB[]) {
 }
 
 bool Query_Inside(FILE *txtFile, FILE *outputFile, char id[], double x, double y) {
-    Object o = StList_Find(getObjList(), compareObjectToId, id);
+    Object o = HashTable_Find(getObjTable(), id);
     if (o == NULL) {
         #ifdef __DEBUG__
         printf("Erro: Elemento não encontrado: %s!\n", id);
@@ -167,8 +106,8 @@ bool Query_Inside(FILE *txtFile, FILE *outputFile, char id[], double x, double y
 
 bool Query_Distance(FILE *txtFile, FILE *outputFile, char j[], char k[]) {
     double c1x, c1y, c2x, c2y;
-    Object a = StList_Find(getObjList(), compareObjectToId, j);
-    Object b = StList_Find(getObjList(), compareObjectToId, k);
+    Object a = HashTable_Find(getObjTable(), j);
+    Object b = HashTable_Find(getObjTable(), k);
     if (a == NULL || b == NULL) {
         #ifdef __DEBUG__
         printf("Erro: Elemento não encontrado!\n");
@@ -197,18 +136,18 @@ bool Query_Bb(FILE *txtFile, FILE *outputFile, char outputDir[], char svgFileNam
 
     putSVGStart(bbFile);
     BBParameters params = {bbFile, color};
-    StList_Execute(getObjList(), insertBoundingBoxElement, &params);
+    RBTree_Execute(getObjTree(), insertBoundingBoxElement, &params);
     putSVGEnd(bbFile);
     fclose(bbFile);
 }
 
 bool Query_Dq(FILE *txtFile, char metric[], char id[], double dist) {
-    Equip e = StList_Find(getHydList(), compareEquipToId, id);
-    if(e == NULL)
-        e = StList_Find(getCTowerList(), compareEquipToId, id);
-    if(e == NULL)
-        e = StList_Find(getTLightList(), compareEquipToId, id);
-    if(e == NULL) {
+    Equip e = HashTable_Find(getHydTable(), id);
+    if (e == NULL)
+        e = HashTable_Find(getCTowerTable(), id);
+    if (e == NULL)
+        e = HashTable_Find(getTLightTable(), id);
+    if (e == NULL) {
         #ifdef __DEBUG__
         printf("Erro: Elemento não encontrado: %s!\n", id);
         #endif
@@ -218,9 +157,9 @@ bool Query_Dq(FILE *txtFile, char metric[], char id[], double dist) {
     fprintf(txtFile, "Equipamento ID: %s\n", Equip_GetID(e));
 
     bool (*_blockInDistance)(void *, void *);
-    if(strcmp(metric, "L1") == 0) {
+    if (strcmp(metric, "L1") == 0) {
         _blockInDistance = blockInDistanceL1;
-    } else if(strcmp(metric, "L2") == 0) {
+    } else if (strcmp(metric, "L2") == 0) {
         _blockInDistance = blockInDistanceL2;
     } else {
         printf("Métrica não reconhecida: %s\n", metric);
@@ -231,12 +170,12 @@ bool Query_Dq(FILE *txtFile, char metric[], char id[], double dist) {
     Equip_SetHighlighted(e, true);
     fprintf(txtFile, "Quadras removidas: ");
 
-    int p;
     double dInfos[3] = {Equip_GetX(e), Equip_GetY(e), dist};
-    while(p = StList_FindPos(getBlockList(), _blockInDistance, (void *) dInfos), p != -1) {
-        Block b = StList_Get(getBlockList(), p);
+    Block b;
+    while (b = RBTree_FindWhere(getBlockTree(), _blockInDistance, (void *) dInfos), b != NULL) {
         fprintf(txtFile, "\n\t- %s", Block_GetCep(b));
-        StList_RemoveAt(getBlockList(), p);
+        RBTree_Remove(getBlockTree(), Block_GetPoint(b));
+        HashTable_Remove(getBlockTable(), Block_GetCep(b));
         Block_Destroy(b);
     }
 
@@ -245,51 +184,57 @@ bool Query_Dq(FILE *txtFile, char metric[], char id[], double dist) {
 }
 
 bool Query_Del(FILE *txtFile, char id[]) {
-    int p = StList_FindPos(getBlockList(), compareBlockToCep, id);
-    if(p != -1) {
-        Block b = StList_Get(getBlockList(), p);
+    Block b = HashTable_Find(getBlockTable(), id);
+    if (b != NULL) {
         fprintf(txtFile, "Informações da quadra removida:\n"
                             "CEP: %s\nPos: (%.2lf, %.2lf)\n"
                             "Largura: %.2lf\nAltura: %.2lf\n\n",
                             Block_GetCep(b), Block_GetX(b), Block_GetY(b), 
                             Block_GetW(b), Block_GetH(b));
-        StList_RemoveAt(getBlockList(), p);
+        RBTree_Remove(getBlockTree(), Block_GetPoint(b));
+        HashTable_Remove(getBlockTable(), id);
         Block_Destroy(b);
         return true;
     }
 
-    p = StList_FindPos(getHydList(), compareEquipToId, id);
-    if(p != -1) {
-        Equip e = StList_Get(getHydList(), p);
+    Equip e = HashTable_Find(getHydTable(), id);
+    if (e != NULL) {
         fprintf(txtFile, "Informações do hidrante removido:\n"
                             "ID: %s\nPos: (%.2lf, %.2lf)\n\n",
                             Equip_GetID(e), Equip_GetX(e), Equip_GetY(e));
-        StList_RemoveAt(getHydList(), p);
+        RBTree_Remove(getHydTree(), Equip_GetPoint(e));
+        HashTable_Remove(getHydTable(), id);
         Equip_Destroy(e);
+
         return true;
     }
 
-    p = StList_FindPos(getCTowerList(), compareEquipToId, id);
-    if(p != -1) {
-        Equip e = StList_Get(getCTowerList(), p);
+    e = HashTable_Find(getCTowerTable(), id);
+    if (e != NULL) {
         fprintf(txtFile, "Informações da rádio-base removida:\n"
                             "ID: %s\nPos: (%.2lf, %.2lf)\n\n",
                             Equip_GetID(e), Equip_GetX(e), Equip_GetY(e));
-        StList_RemoveAt(getCTowerList(), p);
+        
+        RBTree_Remove(getCTowerTree(), Equip_GetPoint(e));
+        HashTable_Remove(getCTowerTable(), id);
         Equip_Destroy(e);
+
         return true;
     }
 
-    p = StList_FindPos(getTLightList(), compareEquipToId, id);
-    if(p != -1) {
-        Equip e = StList_Get(getTLightList(), p);
+    e = HashTable_Find(getTLightTable(), id);
+    if (e != NULL) {
         fprintf(txtFile, "Informações do semáforo removido:\n"
                             "ID: %s\nPos: (%.2lf, %.2lf)\n\n",
                             Equip_GetID(e), Equip_GetX(e), Equip_GetY(e));
-        StList_RemoveAt(getTLightList(), p);
+        
+        RBTree_Remove(getTLightTree(), Equip_GetPoint(e));
+        HashTable_Remove(getTLightTable(), id);
         Equip_Destroy(e);
+
         return true;
     }
+    
 
     fprintf(txtFile, "Elemento não encontrado\n\n");
     #ifdef __DEBUG__
@@ -298,11 +243,42 @@ bool Query_Del(FILE *txtFile, char id[]) {
     return true;
 }
 
+
+typedef struct InfosCbq {
+    double dInfos[3];
+    char *cStrk;
+    FILE *txtFile;
+} InfosCbq;
+
+static bool _canBeOnLeftSubtree(double x, double r, double xChild) {
+    return xChild >= x - r;
+}
+
+static bool _canBeOnRightSubtree(double x, double r, double xChild) {
+    return xChild <= x + r;
+}
+
+static void _changeBlockColorTree(RBTree tree, Node node, InfosCbq *infos) {
+    if (node == NULL)
+        return;
+    double *d = infos->dInfos;
+    Block b = RBTreeN_GetValue(tree, node);
+    if (_canBeOnLeftSubtree(d[0], d[2], Block_GetX(b)))
+        _changeBlockColorTree(tree, RBTreeN_GetLeftChild(tree, node), infos);
+    if (blockInDistanceL2(b, (void *) d)) {
+        fprintf(infos->txtFile, "\n\t- %s", Block_GetCep(b));
+        Block_SetCStroke(b, infos->cStrk);
+    }
+    if (_canBeOnRightSubtree(d[0], d[2], Block_GetX(b))) {
+        _changeBlockColorTree(tree, RBTreeN_GetRightChild(tree, node), infos);
+    }
+}
+
 bool Query_Cbq(FILE *txtFile, double x, double y, double r, char cStrk[]) {
     fprintf(txtFile, "Quadras que tiveram as bordas alteradas: ");
 
     InfosCbq infos = {{x, y, r}, cStrk, txtFile};
-    StList_Execute(getBlockList(), changeBlockColor, &infos);
+    _changeBlockColorTree(getBlockTree(), RBTree_GetRoot(getBlockTree()), &infos);
 
     fprintf(txtFile, "\n\n");
     return true;
@@ -314,25 +290,25 @@ bool Query_Crd(FILE *txtFile, char id[]) {
 
     Equip e;
     Block b;
-    if(b = StList_Find(getBlockList(), compareBlockToCep, id), b != NULL) {
+    if (b = HashTable_Find(getBlockTable(), id), b != NULL) {
         strcpy(eqType, "Quadra");
         x = Block_GetX(b);
         y = Block_GetY(b);
-    } else if(e = StList_Find(getHydList(), compareEquipToId, id), e != NULL) {
+    } else if (e = HashTable_Find(getHydTable(), id), e != NULL) {
         strcpy(eqType, "Hidrante");
         x = Equip_GetX(e);
         y = Equip_GetY(e);
-    } else if(e = StList_Find(getCTowerList(), compareEquipToId, id), e != NULL) {
+    } else if (e = HashTable_Find(getCTowerTable(), id), e != NULL) {
         strcpy(eqType, "Rádio-base");
         x = Equip_GetX(e);
         y = Equip_GetY(e);
-    } else if(e = StList_Find(getTLightList(), compareEquipToId, id), e != NULL) {
+    } else if (e = HashTable_Find(getTLightTable(), id), e != NULL) {
         strcpy(eqType, "Semáforo");
         x = Equip_GetX(e);
         y = Equip_GetY(e);
     }
 
-    if(eqType[0] != '\0') {
+    if (eqType[0] != '\0') {
         fprintf(txtFile, "Espécie do equipamento: %s\n"
                             "Pos: (%.2lf, %.2lf)\n\n",
                             eqType, x, y);
@@ -345,6 +321,66 @@ bool Query_Crd(FILE *txtFile, char id[]) {
     return true;
 }
 
+//
+// Comando trns
+//
+
+typedef struct InfosTrns {
+    double x, y, w, h;
+} InfosTrns;
+
+typedef struct list_node_t {
+    void *element;
+    RBTree tree;
+    struct list_node_t *next;
+} ListNode;
+
+static void _translateBlockTree(RBTree tree, Node node, InfosTrns *infos, ListNode **list) {
+    if (node == NULL)
+        return;
+    Block block = RBTreeN_GetValue(tree, node);
+    if (_canBeOnLeftSubtree(infos->x + infos->w, infos->w, Block_GetX(block)))
+        _translateBlockTree(tree, RBTreeN_GetLeftChild(tree, node), infos, list);
+
+    if (Block_GetX(block) >= infos->x && Block_GetX(block) + Block_GetW(block) <= infos->x + infos->w &&
+            Block_GetY(block) >= infos->y && Block_GetY(block) + Block_GetH(block) <= infos->y + infos->h) {
+        // Se a quadra estiver dentro do retângulo, adicioná-la à lista
+        ListNode *node = malloc(sizeof(struct list_node_t));
+        node->element = block;
+        node->tree = tree;
+        node->next = NULL;
+        (*list)->next = node;
+        *list = node;
+    }
+
+    if (_canBeOnRightSubtree(infos->x, infos->x + infos->w, Block_GetX(block))) {
+        _translateBlockTree(tree, RBTreeN_GetRightChild(tree, node), infos, list);
+    }
+}
+
+static void _translateEquipTree(RBTree tree, Node node, InfosTrns *infos, ListNode **list) {
+    if (node == NULL)
+        return;
+    Equip equip = RBTreeN_GetValue(tree, node);
+    if (_canBeOnLeftSubtree(infos->x + infos->w, infos->w, Equip_GetX(equip)))
+        _translateEquipTree(tree, RBTreeN_GetLeftChild(tree, node), infos, list);
+
+    if (Equip_GetX(equip) >= infos->x && Equip_GetX(equip) <= infos->x + infos->w &&
+            Equip_GetY(equip) >= infos->y && Equip_GetY(equip) <= infos->y + infos->h) {
+        // Se o equipamento estiver dentro do retângulo, adicioná-lo à lista
+        ListNode *node = malloc(sizeof(struct list_node_t));
+        node->element = equip;
+        node->tree = tree;
+        node->next = NULL;
+        (*list)->next = node;
+        *list = node;
+    }
+
+    if (_canBeOnRightSubtree(infos->x, infos->x + infos->w, Equip_GetX(equip))) {
+        _translateEquipTree(tree, RBTreeN_GetRightChild(tree, node), infos, list);
+    }
+}
+
 bool Query_Trns(FILE *txtFile, double x, double y, double w, double h, double dx, double dy) {
     InfosTrns infos;
     
@@ -352,17 +388,79 @@ bool Query_Trns(FILE *txtFile, double x, double y, double w, double h, double dx
     infos.y = y;
     infos.w = w;
     infos.h = h;
-    infos.dx = dx;
-    infos.dy = dy;
-    infos.txtFile = txtFile;
 
     fprintf(txtFile, "Equipamentos movidos:");
     
-    StList_Execute(getBlockList(),    translateBlock, (void *) &infos);
-    StList_Execute(getHydList(),      translateEquip, (void *) &infos);
-    StList_Execute(getCTowerList(),   translateEquip, (void *) &infos); 
-    StList_Execute(getTLightList(),   translateEquip, (void *) &infos);
-    //StList_Execute(getBuildingList(), translateBuilding, (void *) &infos);
+    // Primeiro nó vazio
+    ListNode *node = malloc(sizeof(struct list_node_t));
+    node->next = NULL;
+    ListNode *nodeP = node;
+
+    // Preencher lista
+    _translateBlockTree(getBlockTree(), RBTree_GetRoot(getBlockTree()), &infos, &nodeP);
+    
+    // Descartar primeiro nó (vazio)
+    ListNode *next = node->next;
+    free(node);
+    node = next;
+
+    // Percorrer a lista de quadras a serem transladadas
+    while (node != NULL) {
+        // Remover devido à mudança de chave
+        Block block = RBTree_Remove(node->tree, Block_GetPoint(node->element));
+
+        fprintf(txtFile, "\n%s:"
+                         "\n\tPosição anterior: (%.2lf, %.2lf)"
+                         "\n\tNova posição: (%.2lf, %.2lf)",
+                         Block_GetCep(block), Block_GetX(block), Block_GetY(block),
+                         Block_GetX(block) + dx, Block_GetY(block) + dy);
+
+        Block_SetX(block, Block_GetX(block) + dx);
+        Block_SetY(block, Block_GetY(block) + dy);
+
+        // Inserir novamente com a chave nova
+        RBTree_Insert(node->tree, Block_GetPoint(block), block);
+
+        next = node->next;
+        free(node);
+        node = next;
+    }
+
+    // Primeiro nó vazio
+    node = malloc(sizeof(struct list_node_t));
+    node->next = NULL;
+    nodeP = node;
+
+    // Preencher lista
+    _translateEquipTree(getHydTree(), RBTree_GetRoot(getHydTree()), &infos, &nodeP);
+    _translateEquipTree(getCTowerTree(), RBTree_GetRoot(getCTowerTree()), &infos, &nodeP);
+    _translateEquipTree(getTLightTree(), RBTree_GetRoot(getTLightTree()), &infos, &nodeP);
+
+    // Descartar primeiro nó (vazio)
+    next = node->next;
+    free(node);
+    node = next;
+
+    // Percorrer a lista de equipamentos a serem transladados
+    while (node != NULL) {
+        // Remover devido à mudança de chave
+        Equip equip = RBTree_Remove(node->tree, Equip_GetPoint(node->element));
+
+        fprintf(txtFile, "\n%s:"
+                         "\n\tPosição anterior: (%.2lf, %.2lf)"
+                         "\n\tNova posição: (%.2lf, %.2lf)",
+                         Equip_GetID(equip), Equip_GetX(equip), Equip_GetY(equip),
+                         Equip_GetX(equip) + dx, Equip_GetY(equip) + dy);
+        Equip_SetX(equip, Equip_GetX(equip) + dx);
+        Equip_SetY(equip, Equip_GetY(equip) + dy);
+        
+        // Inserir novamente com a chave nova
+        RBTree_Insert(node->tree, Equip_GetPoint(equip), equip);
+
+        next = node->next;
+        free(node);
+        node = next;
+    }
     
     fprintf(txtFile, "\n\n");
 
@@ -387,29 +485,33 @@ static int compareDistancesAscending(const void *a, const void *b) {
          : 0;
 }
 
-static void buildDistances(StList list, Distance *distances, int n, int x, int y) {
-    int i = 0;
-    for (int p = StList_GetFirstPos(list); p != -1; p = StList_GetNextPos(list, p), i++) {
-        Equip equip = StList_Get(list, p);
-        double dist = euclideanDistance(Equip_GetX(equip), Equip_GetY(equip), x, y);
-        distances[i] = Distance_Create(dist, equip);
-        //distances[i].equip = equip;
-        //distances[i].dist = dist;
-    }
+static void buildDistances(RBTree tree, Node node, Distance **distances, int x, int y) {
+    if (node == NULL)
+        return;
+    
+    buildDistances(tree, RBTreeN_GetLeftChild(tree, node), distances, x, y);
+    Equip equip = RBTreeN_GetValue(tree, node);
+    double dist = euclideanDistance(Equip_GetX(equip), Equip_GetY(equip), x, y);
+    // Adicionar distâcia ao vetor
+    *((*distances)++) = Distance_Create(dist, equip);
+    buildDistances(tree, RBTreeN_GetRightChild(tree, node), distances, x, y);
 }
 
 bool Query_Fi(FILE *txtFile, FILE *outputFile, double x, double y, int ns, double r) {
     fprintf(txtFile, "Semáforos com a programação alterada:");
 
-    int n = StList_GetNumElements(getTLightList());
+    int n = RBTree_GetLength(getTLightTree());
     Distance *distances = malloc(n * sizeof(Distance));
+    Distance *distancesP = distances;
 
-    buildDistances(getTLightList(), distances, n, x, y);
+    // Construir vetor de distâncias dos semáforos ao ponto (x, y)
+    buildDistances(getTLightTree(), RBTree_GetRoot(getTLightTree()), &distancesP, x, y);
 
+    // Ordenar as distâncias até que se tenha as 'ns' maiores
     heapsort(distances, n, ns, compareDistancesDescending);
 
     int limit = n - ns;
-    for(int i = n - 1; i >= limit; i--) {
+    for (int i = n - 1; i >= limit; i--) {
         Equip tLight = Distance_GetEquip(distances[i]);
         Equip_SetHighlighted(tLight, true);
         putSVGLine(outputFile, x, y, Equip_GetX(tLight), Equip_GetY(tLight));
@@ -423,9 +525,9 @@ bool Query_Fi(FILE *txtFile, FILE *outputFile, double x, double y, int ns, doubl
     fprintf(txtFile, "\n");
     fprintf(txtFile, "Hidrantes ativados:");
 
-    int i = 0;
-    for (int p = StList_GetFirstPos(getHydList()); p != -1; p = StList_GetNextPos(getHydList(), p), i++) {
-        Equip hydrant = StList_Get(getHydList(), p);
+    // Percorrer a árvore de hidrantes
+    for (Node node = RBTree_GetFirstNode(getHydTree()); node != NULL; node = RBTreeN_GetSuccessor(getHydTree(), node)) {
+        Equip hydrant = RBTreeN_GetValue(getHydTree(), node);
         double dist = euclideanDistance(Equip_GetX(hydrant), Equip_GetY(hydrant), x, y);
         if (dist <= r) {
             Equip_SetHighlighted(hydrant, true);
@@ -441,7 +543,7 @@ bool Query_Fi(FILE *txtFile, FILE *outputFile, double x, double y, int ns, doubl
 
 bool Query_Fh(FILE *txtFile, FILE *outputFile, char signal, int k, char cep[], char face, double num) {
 
-    Block b = StList_Find(getBlockList(), compareBlockToCep, cep);
+    Block b = HashTable_Find(getBlockTable(), cep);
     if (b == NULL) {
         #ifdef __DEBUG__
         printf("Erro: Elemento não encontrado!\n");
@@ -460,10 +562,12 @@ bool Query_Fh(FILE *txtFile, FILE *outputFile, char signal, int k, char cep[], c
         return true;
     }
 
-    int n = StList_GetNumElements(getHydList());
+    int n = RBTree_GetLength(getHydTree());
     Distance *distances = malloc(n * sizeof(Distance));
+    Distance *distancesP = distances;
 
-    buildDistances(getHydList(), distances, n, x, y);
+    // Construir vetor de distâncias dos hidrantes ao ponto (x, y)
+    buildDistances(getHydTree(), RBTree_GetRoot(getHydTree()), &distancesP, x, y);
 
     if (signal == '+') {
         fprintf(txtFile, "%d hidrantes mais distantes:", k);
@@ -483,19 +587,12 @@ bool Query_Fh(FILE *txtFile, FILE *outputFile, char signal, int k, char cep[], c
     }
 
     int limit = n - k;
-    for(int i = n - 1; i >= limit; i--) {
+    for (int i = n - 1; i >= limit; i--) {
         Equip hyd = Distance_GetEquip(distances[i]);
         Equip_SetHighlighted(hyd, true);
         putSVGLine(outputFile, x, y, Equip_GetX(hyd), Equip_GetY(hyd));
         fprintf(txtFile, "\n\t- %s", Equip_GetID(hyd));
     }
-
-    /*qsort(distances, n, sizeof(EquipDist), compareDistancesDescending);
-    printf("sucesso\n");
-    for (i = 0; i < n; i++) {
-        Equip hyd = distances[i].equip;
-        printf("%s = %.2lf\n", Equip_GetID(hyd), distances[i].dist);
-    }*/
 
     for (int i = 0; i < n; i++)
         Distance_Destroy(distances[i]);
@@ -508,7 +605,7 @@ bool Query_Fh(FILE *txtFile, FILE *outputFile, char signal, int k, char cep[], c
 
 bool Query_Fs(FILE *txtFile, FILE *outputFile, int k, char cep[], char face, double num) {
 
-    Block b = StList_Find(getBlockList(), compareBlockToCep, cep);
+    Block b = HashTable_Find(getBlockTable(), cep);
     if (b == NULL) {
         #ifdef __DEBUG__
         printf("Erro: Elemento não encontrado!\n");
@@ -527,16 +624,18 @@ bool Query_Fs(FILE *txtFile, FILE *outputFile, int k, char cep[], char face, dou
         return true;
     }
 
-    int n = StList_GetNumElements(getTLightList());
+    int n = RBTree_GetLength(getTLightTree());
     Distance *distances = malloc(n * sizeof(Distance));
+    Distance *distancesP = distances;
 
-    buildDistances(getTLightList(), distances, n, x, y);
+    // Construir vetor de distâncias dos semáforos ao ponto (x, y)
+    buildDistances(getTLightTree(), RBTree_GetRoot(getTLightTree()), &distancesP, x, y);
 
     fprintf(txtFile, "%d semáforos mais próximos:", k);
     heapsort(distances, n, k, compareDistancesDescending);
 
     int limit = n - k;
-    for(int i = n - 1; i >= limit; i--) {
+    for (int i = n - 1; i >= limit; i--) {
         Equip hyd = Distance_GetEquip(distances[i]);
         Equip_SetHighlighted(hyd, true);
         putSVGLine(outputFile, x, y, Equip_GetX(hyd), Equip_GetY(hyd));
@@ -552,14 +651,16 @@ bool Query_Fs(FILE *txtFile, FILE *outputFile, int k, char cep[], char face, dou
     return true;
 }
 
-bool compareAddr(Segment s1, Segment s2) {
-    return s1 == s2;
-}
+// bool compareAddr(Segment s1, Segment s2) {
+//     return s1 == s2;
+// }
 
 bool Query_Brl(FILE *outputFile, double x, double y) {
 
-    int nBuildings = StList_GetNumElements(getBuildingList());
-    int nWalls = StList_GetNumElements(getWallList());
+    // int nBuildings = StList_GetNumElements(getBuildingList());
+    // int nWalls = StList_GetNumElements(getWallList());
+    int nBuildings = RBTree_GetLength(getBuildingTree());
+    int nWalls = RBTree_GetLength(getWallTree());
 
     int nSegments = nBuildings * 4 + nWalls;
 
@@ -569,8 +670,10 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
     double maxX = x, maxY = y;
 
     // Colocar segmentos dos prédios na lista
-    for (int p = StList_GetFirstPos(getBuildingList()); p != -1; p = StList_GetNextPos(getBuildingList(), p)) {
-        Building b = StList_Get(getBuildingList(), p);
+    //for (int p = StList_GetFirstPos(getBuildingList()); p != -1; p = StList_GetNextPos(getBuildingList(), p)) {
+    for (Node node = RBTree_GetFirstNode(getBuildingTree()); node != NULL; node = RBTreeN_GetSuccessor(getBuildingTree(), node)) {
+        //Building b = StList_Get(getBuildingList(), p);
+        Building b = RBTreeN_GetValue(getBuildingTree(), node);
         segmentsP = Building_PutSegments(b, segmentsP, x, y);
         double blockMaxX = Building_GetX(b) + Building_GetW(b);
         if (blockMaxX > maxX)
@@ -581,8 +684,10 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
     }
 
     // Colocar segmentos dos muros na lista
-    for (int p = StList_GetFirstPos(getWallList()); p != -1; p = StList_GetNextPos(getWallList(), p)) {
-        Wall w = StList_Get(getWallList(), p);
+    //for (int p = StList_GetFirstPos(getWallList()); p != -1; p = StList_GetNextPos(getWallList(), p)) {
+    for (Node node = RBTree_GetFirstNode(getWallTree()); node != NULL; node = RBTreeN_GetSuccessor(getWallTree(), node)) {
+        //Wall w = StList_Get(getWallList(), p);
+        Wall w = RBTreeN_GetValue(getWallTree(), node);
         segmentsP = Wall_PutSegments(w, segmentsP, x, y);
         double wallMaxX = max(Wall_GetX1(w), Wall_GetX2(w));
         if (wallMaxX > maxX)
@@ -609,33 +714,34 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
     // Novo número de segmentos
     nSegments = segmentsP - segments;
 
-    int nPoints = nSegments * 2;
-    Point *points = malloc(nPoints * sizeof(Point));
+    int nVertexes = nSegments * 2;
+    Vertex *vertexes = malloc(nVertexes * sizeof(Vertex));
 
     // Criar o vetor de pontos
     for (int i = 0; i < nSegments; i++) {
         Segment s = segments[i];
-        points[2 * i] = Segment_GetPStart(s);
-        points[2 * i + 1] = Segment_GetPEnd(s);
+        vertexes[2 * i] = Segment_GetPStart(s);
+        vertexes[2 * i + 1] = Segment_GetPEnd(s);
     }
 
     // Ordenar pontos
-    qsort(points, nPoints, sizeof(Point), Point_Compare);
+    qsort(vertexes, nVertexes, sizeof(Vertex), Vertex_Compare);
 
-    StList activeSegments = StList_Create(nSegments);
+    //StList activeSegments = StList_Create(nSegments);
+    RBTree activeSegments = RBTree_Create(Vertex_Compare);
 
-    for (int i = 0; i < nPoints; i++) {
-        Point p = points[i];
-        Segment s = Point_GetSegment(p);
-        double dist = Point_GetDistance(p);
+    for (int i = 0; i < nVertexes; i++) {
+        Vertex p = vertexes[i];
+        Segment s = Vertex_GetSegment(p);
+        double dist = Vertex_GetDistance(p);
 
         // Coeficiente angular da reta formada pelo ponto central e o ponto atual
         double a1;
         bool vertical = false;
-        if (Point_GetX(p) == x)
+        if (Vertex_GetX(p) == x)
             vertical = true;
         else
-            a1 = (Point_GetY(p) - y) / (Point_GetX(p) - x);
+            a1 = (Vertex_GetY(p) - y) / (Vertex_GetX(p) - x);
         // Termo independente da reta
         double b1 = y - a1 * x;
 
@@ -645,30 +751,32 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
         double xInter, yInter;
         bool inFront = true;
 
-        for (int pos = StList_GetFirstPos(activeSegments); pos != -1; pos = StList_GetNextPos(activeSegments, pos)) {
-            Segment currentSegment = StList_Get(activeSegments, pos);
+        //for (int pos = StList_GetFirstPos(activeSegments); pos != -1; pos = StList_GetNextPos(activeSegments, pos)) {
+        for (Node node = RBTree_GetFirstNode(activeSegments); node != NULL; node = RBTreeN_GetSuccessor(activeSegments, node)) {
+            //Segment currentSegment = StList_Get(activeSegments, pos);
+            Segment currentSegment = RBTreeN_GetValue(activeSegments, node);
             if (currentSegment == s)
                 continue;
 
-            Point p1 = Segment_GetPStart(currentSegment);
-            Point p2 = Segment_GetPEnd(currentSegment);
+            Vertex p1 = Segment_GetPStart(currentSegment);
+            Vertex p2 = Segment_GetPEnd(currentSegment);
 
             // Ponto de intersecção entre a reta anterior e uma nova reta (formada pelo segmento analisado)
             double currentXInter, currentYInter;
 
             // Evitar divisão por zero
-            if (Point_GetX(p2) == Point_GetX(p1)) {
-                currentXInter = Point_GetX(p1);
+            if (Vertex_GetX(p2) == Vertex_GetX(p1)) {
+                currentXInter = Vertex_GetX(p1);
                 currentYInter = a1 * currentXInter + b1;
             } else {
                 // Coeficiente angular
-                double a2 = (Point_GetY(p2) - Point_GetY(p1)) / (Point_GetX(p2) - Point_GetX(p1));
+                double a2 = (Vertex_GetY(p2) - Vertex_GetY(p1)) / (Vertex_GetX(p2) - Vertex_GetX(p1));
 
                 // Termo independente
-                double b2 = Point_GetY(p1) - a2 * Point_GetX(p1);
+                double b2 = Vertex_GetY(p1) - a2 * Vertex_GetX(p1);
 
                 if (vertical)
-                    currentXInter = Point_GetX(p);
+                    currentXInter = Vertex_GetX(p);
                 else
                     currentXInter = (b2 - b1) / (a1 - a2);
 
@@ -693,12 +801,12 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
 
         if (inFront) {
             // Se o segmento estiver na frente de todos os ativos
-            if (!Point_IsStarting(p)) {
+            if (!Vertex_IsStarting(p)) {
                 // Se o ponto for final
                 double xBiombo = Segment_GetXBiombo(s);
                 double yBiombo = Segment_GetYBiombo(s);
                 // Colocar luz a partir do biombo do segmento até o ponto
-                putSVGTriangle(outputFile, xBiombo, yBiombo, x, y, Point_GetX(p), Point_GetY(p));
+                putSVGTriangle(outputFile, xBiombo, yBiombo, x, y, Vertex_GetX(p), Vertex_GetY(p));
                 if (closestSegmentBehind != NULL) {
                     // Se houver um segmento atrás
                     // Definir o biombo deste segmento como o ponto de intersecção
@@ -716,18 +824,19 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
             }
         }
 
-        if (Point_IsStarting(p)) {
-            StList_Add(activeSegments, s);            
+        if (Vertex_IsStarting(p)) {
+            RBTree_Insert(activeSegments, Segment_GetKey(s), s);            
         } else {
-            StList_Remove(activeSegments, compareAddr, s);
+            RBTree_Remove(activeSegments, Segment_GetKey(s));
+            //StList_Remove(activeSegments, compareAddr, s);
         }
     }
 
     putSVGBomb(outputFile, x, y);
 
-    free(points);
+    free(vertexes);
 
-    StList_Destroy(activeSegments, Segment_Destroy);
+    RBTree_Destroy(activeSegments, Segment_Destroy);
     for (int i = 0; i < nSegments; i++) {
         Segment_Destroy(segments[i]);
     }

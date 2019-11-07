@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "../aux/point.h"
+
 typedef void *Block;
 
 Block Block_Create(char cep[], double x, double y, double w, double h, char cFill[], char cStroke[], char wStroke[]);
@@ -31,7 +33,10 @@ double Block_GetW(Block block);
 
 double Block_GetH(Block block);
 
+// Coloca as coordenadas do numero 'num' da face 'face' da quadra 'block' em (x, y)
 bool Block_GetCoordinates(Block block, char face, double num, double *x, double *y);
+
+Point Block_GetPoint(Block block);
 
 void Block_Destroy(Block block);
 

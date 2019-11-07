@@ -1,14 +1,14 @@
 #include "circle.h"
 
 typedef struct circle_t {
-    double x, y, radius;
+    Point point;
+    double radius;
 } *CirclePtr;
 
 Circle Circle_Create(double radius, double x, double y) {
     CirclePtr newCircle = malloc(sizeof(struct circle_t));
     newCircle->radius = radius;
-    newCircle->x = x;
-    newCircle->y = y;
+    newCircle->point = Point_Create(x, y);
     return newCircle;
 }
 
@@ -19,12 +19,12 @@ double Circle_GetRadius(Circle circleVoid) {
 
 double Circle_GetX(Circle circleVoid) {
     CirclePtr circle = (CirclePtr) circleVoid;
-    return circle->x;
+    return Point_GetX(circle->point);
 }
 
 double Circle_GetY(Circle circleVoid) {
     CirclePtr circle = (CirclePtr) circleVoid;
-    return circle->y;
+    return Point_GetY(circle->point);
 }
 
 void Circle_SetRadius(Circle circleVoid, double radius) {
@@ -34,15 +34,21 @@ void Circle_SetRadius(Circle circleVoid, double radius) {
 
 void Circle_SetX(Circle circleVoid, double x) {
     CirclePtr circle = (CirclePtr) circleVoid;
-    circle->x = x;
+    Point_SetX(circle->point, x);
 }
 
 void Circle_SetY(Circle circleVoid, double y) {
     CirclePtr circle = (CirclePtr) circleVoid;
-    circle->y = y;
+    Point_SetY(circle->point, y);
+}
+
+Point Circle_GetPoint(Circle circleVoid) {
+    CirclePtr circle = (CirclePtr) circleVoid;
+    return circle->point;
 }
 
 void Circle_Destroy(Circle circleVoid) {
-    Circle circle = (Circle) circleVoid;
+    CirclePtr circle = (Circle) circleVoid;
+    Point_Destroy(circle->point);
     free(circle);
 }

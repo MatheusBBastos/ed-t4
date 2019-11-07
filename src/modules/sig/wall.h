@@ -2,8 +2,9 @@
 #define WALL_H
 
 #include <stdlib.h>
-#include "../aux/segment.h"
 #include "../aux/point.h"
+#include "../aux/segment.h"
+#include "../aux/vertex.h"
 #include "../sig/geometry.h"
 
 typedef void *Wall;
@@ -30,6 +31,8 @@ void Wall_SetY1(Wall wall, double y1);
 void Wall_SetX2(Wall wall, double x2);
 
 void Wall_SetY2(Wall wall, double y2);
+
+Point Wall_GetPoint1(Wall wall);
 
 void Wall_Destroy(Wall wall);
 

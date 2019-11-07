@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "modules/aux/distance.h"
 #include "modules/aux/heapsort.h"
+#include "modules/aux/vertex.h"
 #include "modules/data_structures/static_list.h"
 #include "modules/sig/block.h"
 #include "modules/sig/equipment.h"
@@ -12,7 +13,7 @@
 #include "modules/sig/object.h"
 #include "modules/sig/svg.h"
 #include "lists.h"
-#include "comparators.h"
+#include "data.h"
 #include "file_util.h"
 
 // T1

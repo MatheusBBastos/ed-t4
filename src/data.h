@@ -1,0 +1,47 @@
+#ifndef DATA_H
+#define DATA_H
+
+#include "modules/data_structures/hash_table.h"
+#include "modules/data_structures/redblack_tree.h"
+#include "modules/sig/object.h"
+#include "modules/sig/text.h"
+#include "modules/sig/block.h"
+#include "modules/sig/equipment.h"
+#include "modules/sig/building.h"
+#include "modules/sig/wall.h"
+
+void initializeTrees();
+
+void initializeTables();
+
+void destroyTrees();
+
+void destroyTables();
+
+RBTree getObjTree();
+
+HashTable getObjTable();
+
+RBTree getTextTree();
+
+RBTree getBlockTree();
+
+HashTable getBlockTable();
+
+RBTree getHydTree();
+
+RBTree getCTowerTree();
+
+RBTree getTLightTree();
+
+RBTree getBuildingTree();
+
+RBTree getWallTree();
+
+HashTable getHydTable();
+
+HashTable getCTowerTable();
+
+HashTable getTLightTable();
+
+#endif

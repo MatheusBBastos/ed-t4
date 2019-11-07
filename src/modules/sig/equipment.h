@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "../aux/point.h"
 
 typedef void *Equip;
 
@@ -28,6 +29,8 @@ void Equip_SetY(Equip equip, double y);
 bool Equip_GetHighlighted(Equip equip);
 
 void Equip_SetHighlighted(Equip equip, bool highlighted);
+
+Point Equip_GetPoint(Equip equip);
 
 void Equip_Destroy(Equip equip);
 

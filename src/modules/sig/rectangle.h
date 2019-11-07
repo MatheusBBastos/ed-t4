@@ -2,6 +2,7 @@
 #define RECTANGLE_H
 
 #include <stdlib.h>
+#include "../aux/point.h"
 
 typedef void *Rectangle;
 
@@ -22,6 +23,8 @@ void Rectangle_SetHeight(Rectangle rectangle, double height);
 void Rectangle_SetX(Rectangle rectangle, double x);
 
 void Rectangle_SetY(Rectangle rectangle, double y);
+
+Point Rectangle_GetPoint(Rectangle rectangle);
 
 void Rectangle_Destroy(Rectangle rectangle);
 
