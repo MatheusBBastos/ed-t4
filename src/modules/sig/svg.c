@@ -227,6 +227,45 @@ void putSVGBomb(FILE *file, double x, double y) {
         x - 6.5, y - 8.5);
 }
 
+void putSVGNode(FILE *file, double x, int y, bool red, char *description) {
+    fprintf(file, "<circle cx=\"%lf\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n", 
+            x, y, TREE_NODE_RADIUS, red ? "red" : "black");
+    fprintf(file, "<text x=\"%lf\" y=\"%d\" fill=\"white\" font-size=\"3\" dominant-baseline=\"middle\" "
+                  "text-anchor=\"middle\">%s</text>\n", x, y, description);
+}
+
+static double _generateTreeSVG(RBTree tree, FILE *file, Node node, int height, double xMin, double *x, char* (*describe)(Value)) {
+    if (node == NULL) {
+        *x = xMin;
+        putSVGNode(file, *x, TREE_TOP_MARGIN + height * TREE_Y_SPACING, false, "nil");
+        return xMin + TREE_X_SPACING * 2;
+    }
+    double xLeft;
+    double xMaxLeft = _generateTreeSVG(tree, file, RBTreeN_GetLeftChild(tree, node), height + 1, xMin, &xLeft, describe);
+
+    double xRight;
+    double xMaxRight = _generateTreeSVG(tree, file, RBTreeN_GetRightChild(tree, node), height + 1, xMaxLeft, &xRight, describe);
+
+     *x = (xLeft + xRight) / 2;
+     int y = TREE_TOP_MARGIN + height * TREE_Y_SPACING;
+     int yChild = y + TREE_Y_SPACING;
+
+    putSVGLine(file, *x, y, xLeft, yChild - TREE_NODE_RADIUS);
+    putSVGLine(file, *x, y, xRight, yChild - TREE_NODE_RADIUS);
+
+    putSVGNode(file, *x, y, RBTreeN_GetColor(node) == RED, describe(RBTreeN_GetValue(tree, node)));
+    
+    return xMaxRight + TREE_X_SPACING;
+}
+
+
+void putSVGRBTree(RBTree tree, FILE *file, char* (*describe)(Value)) {
+    putSVGStart(file);
+    double x;
+    _generateTreeSVG(tree, file, RBTree_GetRoot(tree), 0, TREE_LEFT_MARGIN, &x, describe);
+    putSVGEnd(file);
+}
+
 void putSVGEnd(FILE *file) {
     fputs("</svg>\n", file);
 }

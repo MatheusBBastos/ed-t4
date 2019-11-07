@@ -5,7 +5,7 @@ LINKER_FLAGS = -lm
 EXEC_NAME = siguel
 OBJECTS = main.o distance.o heapsort.o geometry.o object.o circle.o rectangle.o block.o equipment.o \
     segment.o vertex.o building.o wall.o file_util.o static_list.o svg.o commands.o query.o data.o \
-	comparators.o redblack_tree.o hash_table.o point.o text.o lists.o
+	comparators.o redblack_tree.o hash_table.o point.o text.o lists.o files.o
 
 all: $(EXEC_NAME)
 
@@ -83,6 +83,9 @@ redblack_tree.o: modules/data_structures/redblack_tree.c modules/data_structures
 
 hash_table.o: modules/data_structures/hash_table.c modules/data_structures/hash_table.h
 	$(CC) -c modules/data_structures/hash_table.c $(COMPILER_FLAGS)
+
+files.o: modules/util/files.c modules/util/files.h
+	$(CC) -c modules/util/files.c $(COMPILER_FLAGS)
 
 clean:
 	rm -rf *.o

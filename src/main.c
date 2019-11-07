@@ -6,6 +6,7 @@
 #include "commands.h"
 #include "modules/sig/object.h"
 #include "modules/data_structures/static_list.h"
+#include "modules/util/files.h"
 
 int main(int argc, char *argv[]) {
 
@@ -14,12 +15,16 @@ int main(int argc, char *argv[]) {
 	char *queryFileName = NULL;
 	char *outputDir = NULL;
 	char *outputSVGFileName = NULL;
+	char *ecFileName = NULL;
+	char *pmFileName = NULL;
 
 	FILE *entryFile = NULL;
 	FILE *queryFile = NULL;
 	FILE *outputSVGFile = NULL;
 	FILE *outputQrySVGFile = NULL;
 	FILE *outputTXTFile = NULL;
+	FILE *ecFile = NULL;
+	FILE *pmFile = NULL;
 
 	// Processamento dos argumentos passados ao programa
 	for (int i = 1; i < argc; i++) {
@@ -63,6 +68,26 @@ int main(int argc, char *argv[]) {
 			}
 			outputDir = malloc((strlen(argv[i]) + 1) * sizeof(char));
 			strcpy(outputDir, argv[i]);
+		} else if (strcmp("-ec", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-ec' requer o nome de um arquivo!\n");
+				return 1;
+			}
+			if (ecFileName != NULL) {
+				free(ecFileName);
+			}
+			ecFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(ecFileName, argv[i]);
+		} else if (strcmp("-pm", argv[i]) == 0) {
+			if (++i >= argc) {
+				printf("O argumento '-pm' requer o nome de um arquivo!\n");
+				return 1;
+			}
+			if (pmFileName != NULL) {
+				free(pmFileName);
+			}
+			pmFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
+			strcpy(pmFileName, argv[i]);
 		} else {
 			printf("Comando não reconhecido: '%s'\n", argv[i]);
 			return 1;
@@ -129,6 +154,18 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	if (ecFileName != NULL) {
+		ecFile = openFile(baseDir, ecFileName, "r");
+		if (ecFile == NULL)
+			return 1;
+	}
+
+	if (pmFileName != NULL) {
+		pmFile = openFile(baseDir, pmFileName, "r");
+		if (pmFile == NULL)
+			return 1;
+	}
+
 	// Processar comandos do .geo
 	/*if (!processGeometry(entryFile, outputSVGFile, outputQrySVGFile, objList))
 		return 1;
@@ -138,10 +175,23 @@ int main(int argc, char *argv[]) {
 		if (!processQuery(queryFile, outputQrySVGFile, outputTXTFile, objList, outputDir, outputQrySVGFileName))
 			return 1;*/
 
-	processAll(entryFile, outputSVGFile, outputQrySVGFile, queryFile, outputTXTFile, outputDir, outputQrySVGFileName);
+	Files files = Files_Create();
+	Files_SetEntryFile(files, entryFile);
+	Files_SetOutputSVGFile(files, outputSVGFile);
+	Files_SetOutputQryFile(files, outputQrySVGFile);
+	Files_SetQueryFile(files,queryFile);
+	Files_SetTxtFile(files, outputTXTFile);
+	Files_SetOutputDir(files, outputDir);
+	Files_SetSvgFileName(files, outputQrySVGFileName);
+	Files_SetEcFile(files, ecFile);
+	Files_SetPmFile(files, pmFile);
 
-	
+	//processAll(entryFile, outputSVGFile, outputQrySVGFile, queryFile, outputTXTFile, outputDir, outputQrySVGFileName);
+	processAll(files);
+
 	// Limpeza
+	Files_Destroy(files);
+
 	fclose(entryFile);
 	fclose(outputSVGFile);
 	if (queryFile != NULL) {
@@ -156,5 +206,13 @@ int main(int argc, char *argv[]) {
 	free(entryFileName);
 	if (outputDir != NULL)
 		free(outputDir);
+	if (ecFile != NULL) {
+		free(ecFileName);
+		fclose(ecFile);
+	}
+	if (pmFile != NULL) {
+		free(pmFileName);
+		fclose(pmFile);
+	}
 	//StList_Destroy(objList, Object_Destroy);
 }

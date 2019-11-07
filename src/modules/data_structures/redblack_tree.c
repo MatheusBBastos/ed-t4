@@ -2,12 +2,8 @@
 
 #include "redblack_tree.h"
 
-typedef enum color_t {
-    BLACK, RED
-} Color;
-
 typedef struct node_t {
-    Color color;
+    NodeColor color;
     struct node_t *parent;
     struct node_t *left;
     struct node_t *right;
@@ -190,6 +186,10 @@ Key RBTreeN_GetKey(RBTree treeVoid, Node nodeVoid) {
 Value RBTreeN_GetValue(RBTree treeVoid, Node nodeVoid) {
     NodeImpl node = (NodeImpl) nodeVoid;
     return node->value;
+}
+
+NodeColor RBTreeN_GetColor(Node node) {
+    return ((NodeImpl) node)->color;
 }
 
 Value _findWhere(RBTreeImpl tree, NodeImpl node, bool compFunc(void*, void*), void *comparingField) {

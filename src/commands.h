@@ -8,11 +8,16 @@
 #include "modules/sig/equipment.h"
 #include "modules/sig/svg.h"
 #include "modules/sig/geometry.h"
+#include "modules/util/files.h"
 #include "query.h"
 #include "data.h"
 
 // Processa o arquivo .geo e o .qry, se tiver, escrevendo os resultados nos arquivos de saída
-void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE *queryFile, 
-                FILE *txtFile, char outputDir[], char svgFileName[]);
+// void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE *queryFile, 
+//                 FILE *txtFile, char outputDir[], char svgFileName[]);
+
+void processAll(Files files);
+
+void processAndGenerateQuery(Files files);
 
 #endif

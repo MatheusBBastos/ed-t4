@@ -1,7 +1,12 @@
 #ifndef RBTREE_H
 #define RBTREE_H
 
+#include <stdio.h>
 #include <stdbool.h>
+
+typedef enum node_color_t {
+    BLACK, RED
+} NodeColor;
 
 typedef void *RBTree;
 typedef void *Key;
@@ -53,5 +58,9 @@ Value RBTreeN_GetValue(RBTree tree, Node node);
 
 // Procura o primeiro elemento val que faz compFunc(val, comparingField) retornar true
 Value RBTree_FindWhere(RBTree treeVoid, bool compFunc(void*, void*), void *comparingField);
+
+void RBTree_GenerateSVG(RBTree treeVoid, FILE *file, char* (*describe)(Value));
+
+NodeColor RBTreeN_GetColor(Node node);
 
 #endif

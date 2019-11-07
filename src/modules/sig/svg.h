@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "../data_structures/redblack_tree.h"
 #include "circle.h"
 #include "rectangle.h"
 #include "block.h"
@@ -21,6 +22,12 @@
 #define HIGHLIGHT_WSTROKE "2"
 #define HIGHLIGHT_CFILL "yellow"
 #define TEXT_CENTER "dominant-baseline=\"middle\" text-anchor=\"middle\""
+
+#define TREE_TOP_MARGIN 10
+#define TREE_LEFT_MARGIN 6
+#define TREE_X_SPACING 6
+#define TREE_Y_SPACING 20
+#define TREE_NODE_RADIUS 5
 
 void putSVGStart(FILE *file);
 
@@ -61,6 +68,10 @@ void putSVGSegment(FILE *file, double x1, double y1, double x2, double y2);
 void putSVGTriangle(FILE *file, double x1, double y1, double x2, double y2, double x3, double y3);
 
 void putSVGBomb(FILE *file, double x, double y);
+
+void putSVGNode(FILE *file, double x, int y, bool red, char *description);
+
+void putSVGRBTree(RBTree tree, FILE *file, char* (*describe)(Value));
 
 void putSVGEnd(FILE *file);
 

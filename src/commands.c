@@ -35,25 +35,32 @@ void writeSVG(FILE *outputSVGFile, bool svgTag) {
         putSVGEnd(outputSVGFile);
 }
 
-void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE *queryFile, FILE *txtFile, char outputDir[], char svgFileName[]) {
+//void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE *queryFile, FILE *txtFile, char outputDir[], char svgFileName[]) {
+void processAll(Files files) {
     initializeTrees();
     initializeTables();
     
-    processGeometry(entryFile);
-    writeSVG(outputSVGFile, true);
+    processGeometry(Files_GetEntryFile(files));
+    writeSVG(Files_GetOutputSVGFile(files), true);
     
-    if (queryFile != NULL) {
-        putSVGStart(outputQryFile);
-        putSVGQueryStart(outputQryFile);
-        processQuery(queryFile, outputQryFile, txtFile, outputDir, svgFileName);
-        putSVGQueryEnd(outputQryFile);
-        writeSVG(outputQryFile, false);
-        putSVGUseQuery(outputQryFile);
-        putSVGEnd(outputQryFile);
+    if (Files_GetQueryFile(files) != NULL) {
+        processAndGenerateQuery(files);
     }
 
     destroyTables();
     destroyTrees();
+}
+
+void processAndGenerateQuery(Files files) {
+    FILE *outputQryFile = Files_GetOutputQryFile(files);
+    putSVGStart(outputQryFile);
+    putSVGQueryStart(outputQryFile);
+    processQuery(Files_GetQueryFile(files), outputQryFile, Files_GetTxtFile(files), 
+                    Files_GetOutputDir(files), Files_GetSvgFileName(files));
+    putSVGQueryEnd(outputQryFile);
+    writeSVG(outputQryFile, false);
+    putSVGUseQuery(outputQryFile);
+    putSVGEnd(outputQryFile);
 }
 
 bool processGeometry(FILE *entryFile) {
