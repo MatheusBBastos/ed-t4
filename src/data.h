@@ -9,6 +9,7 @@
 #include "modules/sig/equipment.h"
 #include "modules/sig/building.h"
 #include "modules/sig/wall.h"
+#include "modules/sig/commerce_type.h"
 
 void initializeTrees();
 
@@ -43,5 +44,11 @@ HashTable getHydTable();
 HashTable getCTowerTable();
 
 HashTable getTLightTable();
+
+HashTable getCommTypeTable();
+
+HashTable getCommerceTable();
+
+HashTable getPersonTable();
 
 #endif

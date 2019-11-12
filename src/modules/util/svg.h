@@ -3,13 +3,14 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "../aux/polygon.h"
 #include "../data_structures/redblack_tree.h"
-#include "circle.h"
-#include "rectangle.h"
-#include "block.h"
-#include "equipment.h"
-#include "building.h"
-#include "wall.h"
+#include "../sig/block.h"
+#include "../sig/building.h"
+#include "../sig/circle.h"
+#include "../sig/equipment.h"
+#include "../sig/rectangle.h"
+#include "../sig/wall.h"
 
 #define STROKE_WIDTH "1"
 #define WALL_STROKE_WIDTH "3"
@@ -71,7 +72,11 @@ void putSVGBomb(FILE *file, double x, double y);
 
 void putSVGNode(FILE *file, double x, int y, bool red, char *description);
 
-void putSVGRBTree(RBTree tree, FILE *file, char* (*describe)(Value));
+void putSVGRBTree(FILE *file, RBTree tree, void (*describe)(Value, char*));
+
+void putSVGPolygon(FILE *file, Polygon polygon);
+
+void putSVGCross(FILE *file, Building building);
 
 void putSVGEnd(FILE *file);
 

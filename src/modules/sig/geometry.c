@@ -96,3 +96,17 @@ double min(double a, double b) {
 double calculateAngle(double y, double x) {
     return atan2(y, x);
 }
+
+bool nearlyEqual(double a, double b) {
+    double absA = fabs(a);
+    double absB = fabs(b);
+    double diff = fabs(a - b);
+
+    if (a == b) {
+        return true;
+    } else if (a == 0 || b == 0 || (absA + absB < DBL_MIN)) {
+        return diff < (DBL_EPSILON * DBL_MIN);
+    } else {
+        return diff / min((absA + absB), DBL_MAX) < DBL_EPSILON;
+    }
+}

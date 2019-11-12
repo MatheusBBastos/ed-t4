@@ -8,13 +8,64 @@ typedef struct files_t {
     FILE *txtFile;
     FILE *ecFile;
     FILE *pmFile;
+    char baseDir[64];
     char *outputDir;
-    char *svgFileName;
+    char qrySVGFileName[64];
 } *FilesPtr;
 
 Files Files_Create() {
     FilesPtr files = malloc(sizeof(struct files_t));
+    files->entryFile = NULL;
+    files->outputSVGFile = NULL;
+    files->outputQryFile = NULL;
+    files->queryFile = NULL;
+    files->txtFile = NULL;
+    files->ecFile = NULL;
+    files->pmFile = NULL;
+    files->outputDir = NULL;
+    files->qrySVGFileName[0] = '\0';
     return files;
+}
+
+bool Files_OpenQueryFiles(Files *filesVoid, char *baseDir, char *entryFileName, char *queryFileName) {
+    FilesPtr files = (FilesPtr) filesVoid;
+
+    strcpy(files->baseDir, baseDir);
+
+    char outputTXTFileName[64];
+	char outputQrySVGFileName[64];
+    files->queryFile = openFile(baseDir, queryFileName, "r");
+    if (files->queryFile == NULL)
+        return false;
+    
+    char noExtName[32];
+    // Copiar nome completo do arquivo de consulta
+    strcpy(noExtName, queryFileName);
+    // Remover diretório e extensão
+    removeDirAndExt(noExtName);
+
+    // Copiar nome do arquivo de entrada
+    strcpy(outputTXTFileName, entryFileName);
+    // Adicionar sufixo (que é o nome do arquivo de consulta)
+    addSuffix(outputTXTFileName, noExtName);
+    // Copiar o resultado para o arquivo SVG de consulta
+    strcpy(outputQrySVGFileName, outputTXTFileName);
+
+    // Atribuir as extensões correspondentes
+    changeExtension(outputTXTFileName, "txt");
+    changeExtension(outputQrySVGFileName, "svg");
+
+    files->txtFile = openFile(files->outputDir, outputTXTFileName, "w");
+    if (files->txtFile == NULL)
+        return false;
+
+    files->outputQryFile = openFile(files->outputDir, outputQrySVGFileName, "w");
+    if (files->outputQryFile == NULL)
+        return false;
+
+    strcpy(files->qrySVGFileName, outputQrySVGFileName);
+
+    return true;
 }
 
 FILE *Files_GetEntryFile(Files filesVoid) {
@@ -52,14 +103,19 @@ FILE *Files_GetPmFile(Files filesVoid) {
     return files->pmFile;
 }
 
+char *Files_GetBaseDir(Files filesVoid) {
+    FilesPtr files = (FilesPtr) filesVoid;
+    return files->baseDir;
+}
+
 char *Files_GetOutputDir(Files filesVoid) {
     FilesPtr files = (FilesPtr) filesVoid;
     return files->outputDir;
 }
 
-char *Files_GetSvgFileName(Files filesVoid) {
+char *Files_GetQrySVGFileName(Files filesVoid) {
     FilesPtr files = (FilesPtr) filesVoid;
-    return files->svgFileName;
+    return files->qrySVGFileName;
 }
 
 void Files_SetEntryFile(Files filesVoid, FILE *entryFile) {
@@ -102,9 +158,9 @@ void Files_SetOutputDir(Files filesVoid, char *outputDir) {
     files->outputDir = outputDir;
 }
 
-void Files_SetSvgFileName(Files filesVoid, char *svgFileName) {
+void Files_SetQrySVGFileName(Files filesVoid, char *svgFileName) {
     FilesPtr files = (FilesPtr) filesVoid;
-    files->svgFileName = svgFileName;
+    strcpy(files->qrySVGFileName, svgFileName);
 }
 
 void Files_Destroy(Files filesVoid) {

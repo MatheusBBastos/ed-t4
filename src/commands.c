@@ -1,10 +1,14 @@
 #include <string.h>
 #include "commands.h"
-#include "file_util.h"
+#include "modules/util/file_util.h"
 
 bool processGeometry(FILE *entryFile);
 
-bool processQuery(FILE *queryFile, FILE *outputFile, FILE *txtFile, char outputDir[], char svgFileName[]);
+bool processCommerces(FILE *ecFile);
+
+bool processPeople(FILE *pmFile);
+
+bool processQuery(FILE *queryFile, FILE *outputFile, FILE *txtFile, char baseDir[], char outputDir[], char svgFileName[]);
 
 void writeObject(Object o, void *param) {
     FILE *svgFile = (FILE *) param;
@@ -35,32 +39,34 @@ void writeSVG(FILE *outputSVGFile, bool svgTag) {
         putSVGEnd(outputSVGFile);
 }
 
-//void processAll(FILE *entryFile, FILE *outputSVGFile, FILE *outputQryFile, FILE *queryFile, FILE *txtFile, char outputDir[], char svgFileName[]) {
 void processAll(Files files) {
-    initializeTrees();
-    initializeTables();
-    
     processGeometry(Files_GetEntryFile(files));
     writeSVG(Files_GetOutputSVGFile(files), true);
+
+    if (Files_GetPmFile(files) != NULL)
+        processPeople(Files_GetPmFile(files));
+    if (Files_GetEcFile(files) != NULL)
+        processCommerces(Files_GetEcFile(files));
     
     if (Files_GetQueryFile(files) != NULL) {
         processAndGenerateQuery(files);
     }
-
-    destroyTables();
-    destroyTrees();
 }
 
 void processAndGenerateQuery(Files files) {
     FILE *outputQryFile = Files_GetOutputQryFile(files);
     putSVGStart(outputQryFile);
     putSVGQueryStart(outputQryFile);
-    processQuery(Files_GetQueryFile(files), outputQryFile, Files_GetTxtFile(files), 
-                    Files_GetOutputDir(files), Files_GetSvgFileName(files));
+    processQuery(Files_GetQueryFile(files), outputQryFile, Files_GetTxtFile(files), Files_GetBaseDir(files),
+                    Files_GetOutputDir(files), Files_GetQrySVGFileName(files));
     putSVGQueryEnd(outputQryFile);
     writeSVG(outputQryFile, false);
     putSVGUseQuery(outputQryFile);
     putSVGEnd(outputQryFile);
+
+    fclose(outputQryFile);
+    fclose(Files_GetTxtFile(files));
+    fclose(Files_GetQueryFile(files));
 }
 
 bool processGeometry(FILE *entryFile) {
@@ -212,45 +218,16 @@ bool processGeometry(FILE *entryFile) {
             double num, f, p, mrg;
             sscanf(buffer + 3, "%15s %c %lf %lf %lf %lf", cep, &face, &num, &f, &p, &mrg);
 
-            Block b = HashTable_Find(getBlockTable(), cep);
-            if (b == NULL) {
+            Block block = HashTable_Find(getBlockTable(), cep);
+            if (block == NULL) {
                 #ifdef __DEBUG__
                 printf("Erro: Quadra de CEP %s não encontrada!\n", cep);
                 #endif
                 continue;
             }
 
-            double x, y, w, h;
-            x = Block_GetX(b);
-            y = Block_GetY(b);
-
-            if (face == 'N' || face == 'n') {
-                x += num - f / 2;
-                y += Block_GetH(b);
-                y -= mrg;
-                y -= p;
-                w = f;
-                h = p;
-            } else if (face == 'S' || face == 's') {
-                x += num - f / 2;
-                y += mrg;
-                w = f;
-                h = p;
-            } else if (face == 'L' || face == 'l') {
-                x += mrg;
-                y += num - f / 2;
-                w = p;
-                h = f;
-            } else if (face == 'O' || face == 'o') {
-                x += Block_GetW(b);
-                x -= mrg;
-                x -= p;
-                y += num - f / 2;
-                w = p;
-                h = f;
-            }
-
-            Building building = Building_Create(x, y, w, h, num);
+            Building building = Building_Create(block, face, num, f, p, mrg);
+            Block_InsertBuilding(block, building);
 
             Building replacedBuilding = RBTree_Insert(getBuildingTree(), Building_GetPoint(building), building);
             if (replacedBuilding != NULL)
@@ -270,7 +247,128 @@ bool processGeometry(FILE *entryFile) {
     return true;
 }
 
-bool processQuery(FILE *queryFile, FILE *outputFile, FILE *txtFile, char outputDir[], char svgFileName[]) {
+bool processPeople(FILE *pmFile) {
+    char buffer[128];
+    while (fgets(buffer, 100, pmFile) != NULL) {
+        char type[16];
+        sscanf(buffer, "%15s", type);
+
+        if (strcmp(type, "p") == 0) {
+            char cpf[16], name[32], surname[32], sex, birthDate[16];
+            sscanf(buffer + 2, "%s %s %s %c %s", cpf, name, surname, &sex, birthDate);
+
+            Person person = Person_Create(cpf, name, surname, sex, birthDate);
+
+            Person replaced = HashTable_Insert(getPersonTable(), Person_GetCpf(person), person);
+            if (replaced != NULL) {
+                Building building = Person_GetBuilding(replaced);
+                if (building != NULL)
+                    Building_RemoveResident(building, replaced);
+                Block block = Person_GetBlock(replaced);
+                if (block != NULL) {
+                    Block_RemoveResident(block, replaced);
+                }
+                Person_Destroy(replaced);
+            }
+        } else if (strcmp(type, "m") == 0) {
+            char cpf[16], cep[24], face, complement[16];
+            int num;
+            sscanf(buffer + 1, "%s %s %c %d %s", cpf, cep, &face, &num, complement);
+
+            Person person = HashTable_Find(getPersonTable(), cpf);
+            if (person == NULL) {
+                printf("Erro: Pessoa de CPF %s não encontrada!\n", cpf);
+            }
+
+            char address[64];
+            Building_MakeAddress(address, cep, face, num);
+
+            Block block = HashTable_Find(getBlockTable(), cep);
+            if (block == NULL) {
+                printf("Erro: Quadra de CEP %s não encontrada!\n", cep);
+                continue;
+            }
+
+            Person_SetBlock(person, block);
+            Person_SetAddress(person, address);
+            Person_SetComplement(person, complement);
+
+            RBTree buildings = Block_GetBuildings(block);
+            Building building = RBTree_Find(buildings, address);
+            if (building != NULL) {
+                Building_InsertResident(building, person);
+                Person_SetBuilding(person, building);
+            }
+
+            Block_InsertResident(block, person);
+        }
+    }
+}
+
+bool processCommerces(FILE *ecFile) {
+    char buffer[128];
+    while (fgets(buffer, 100, ecFile) != NULL) {
+        char type[16];
+        sscanf(buffer, "%15s", type);
+
+        if (strcmp(type, "t") == 0) {
+            char codt[16], desc[64];
+            sscanf(buffer + 2, "%s %63[^\n]", codt, desc);
+
+            CommerceType commType = CommerceType_Create(codt, desc);
+
+            CommerceType replaced = HashTable_Insert(getCommTypeTable(), 
+                                                     CommerceType_GetCode(commType), 
+                                                     commType);
+            if (replaced != NULL)
+                CommerceType_Destroy(replaced);
+
+        } else if (strcmp(type, "e") == 0) {
+            char cnpj[24], cpf[16], codt[16], cep[24], face, name[64];
+            int num;
+
+            sscanf(buffer + 2, "%s %s %s %s %c %d %63[^\n]", cnpj, cpf, codt, cep, &face, &num, name);
+            
+            CommerceType cType = HashTable_Find(getCommTypeTable(), codt);
+            if (cType == NULL) {
+                printf("Erro: Tipo de estabelecimento não encontrado: %s\n", codt);
+                continue;
+            }
+
+            char address[64];
+            Building_MakeAddress(address, cep, face, num);
+
+            Block block = HashTable_Find(getBlockTable(), cep);
+            if (block == NULL) {
+                printf("Erro: Quadra de CEP %s não encontrada!\n", cep);
+                continue;
+            }
+
+            RBTree buildings = Block_GetBuildings(block);
+            Building building = RBTree_Find(buildings, address);
+
+            Person person = HashTable_Find(getPersonTable(), cpf);
+            if (person == NULL) {
+                printf("Erro: Pessoa de CPF %s não encontrada!\n", cpf);
+            }
+
+            Commerce commerce = Commerce_Create(cType, address, block, building, name, cnpj, person);
+            Commerce replaced = HashTable_Insert(getCommerceTable(), Commerce_GetCnpj(commerce), commerce);
+            if (replaced != NULL) {
+                if (Commerce_GetBuilding(replaced) != NULL)
+                    Building_RemoveCommerce(Commerce_GetBuilding(replaced), replaced);
+                Block_RemoveCommerce(Commerce_GetBlock(replaced), replaced);
+                Commerce_Destroy(replaced);
+            }
+
+            if (building != NULL)
+                Building_InsertCommerce(building, commerce);
+            Block_InsertCommerce(block, commerce);
+        }
+    }
+}
+
+bool processQuery(FILE *queryFile, FILE *outputFile, FILE *txtFile, char baseDir[], char outputDir[], char svgFileName[]) {
     char buffer[128];
     while (fgets(buffer, 128, queryFile) != NULL) {
 
@@ -408,6 +506,85 @@ bool processQuery(FILE *queryFile, FILE *outputFile, FILE *txtFile, char outputD
             if (!Query_Fs(txtFile, outputFile, k, cep, face, num))
                 return false;
 
+        } else if (strcmp(type, "brn") == 0) {
+
+            char arqPol[32];
+            double x, y;
+
+            sscanf(buffer + 4, "%lf %lf %31[^\n]", &x, &y, arqPol);
+
+            fputs(buffer, txtFile);
+            Query_Brn(txtFile, outputFile, x, y, outputDir, arqPol);
+
+        } else if (strcmp(type, "m?") == 0) {
+
+            char cep[16];
+
+            sscanf(buffer + 3, "%s", cep);
+
+            fputs(buffer, txtFile);
+            if (!Query_M(txtFile, cep))
+                return false;
+
+        } else if (strcmp(type, "mplg?") == 0) {
+            
+            char arqPol[32];
+            sscanf(buffer + 6, "%31[^\n]", arqPol);
+
+            fputs(buffer, txtFile);
+            Query_Mplg(txtFile, outputFile, baseDir, arqPol);
+
+        } else if (strcmp(type, "dm?") == 0) {
+
+            char cpf[16];
+            sscanf(buffer + 4, "%s", cpf);
+
+            fputs(buffer, txtFile);
+            if (!Query_Dm(txtFile, cpf))
+                return false;
+
+        } else if (strcmp(type, "de?") == 0) {
+
+            char cnpj[24];
+            sscanf(buffer + 4, "%s", cnpj);
+
+            fputs(buffer, txtFile);
+            if (!Query_De(txtFile, cnpj))
+                return false;
+
+        } else if (strcmp(type, "mud") == 0) {
+
+            char cpf[16], cep[24], face, compl[16];
+            int num;
+            sscanf(buffer + 4, "%s %s %c %d %s", cpf, cep, &face, &num, compl);
+
+            fputs(buffer, txtFile);
+            if (!Query_Mud(txtFile, cpf, cep, face, num, compl))
+                return false;
+
+        } else if (strcmp(type, "eplg?") == 0) {
+
+            char arqPolig[32], commType[16];
+            sscanf(buffer + 6, "%s %s", arqPolig, commType);
+
+            fputs(buffer, txtFile);
+            Query_Eplg(txtFile, outputFile, baseDir, arqPolig, commType);
+
+        } else if (strcmp(type, "catac") == 0) {
+            
+            char arqPolig[32];
+            sscanf(buffer + 6, "%31[^\n]", arqPolig);
+
+            fputs(buffer, txtFile);
+            Query_Catac(outputFile, txtFile, baseDir, arqPolig);
+
+        } else if (strcmp(type, "dmprbt") == 0) {
+
+            char t, arq[32];
+
+            sscanf(buffer + 7, "%c %31[^\n]", &t, arq);
+
+            Query_Dmprbt(outputDir, t, arq);
         }
     }
     return true;

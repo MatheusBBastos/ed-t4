@@ -2,13 +2,18 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "file_util.h"
+#include "modules/util/file_util.h"
 #include "commands.h"
+#include "interaction.h"
 #include "modules/sig/object.h"
 #include "modules/data_structures/static_list.h"
 #include "modules/util/files.h"
 
 int main(int argc, char *argv[]) {
+
+	Files files = Files_Create();
+
+	bool interactive = false;
 
 	char *baseDir = NULL;
 	char *entryFileName = NULL;
@@ -19,10 +24,7 @@ int main(int argc, char *argv[]) {
 	char *pmFileName = NULL;
 
 	FILE *entryFile = NULL;
-	FILE *queryFile = NULL;
 	FILE *outputSVGFile = NULL;
-	FILE *outputQrySVGFile = NULL;
-	FILE *outputTXTFile = NULL;
 	FILE *ecFile = NULL;
 	FILE *pmFile = NULL;
 
@@ -88,6 +90,8 @@ int main(int argc, char *argv[]) {
 			}
 			pmFileName = malloc((strlen(argv[i]) + 1) * sizeof(char));
 			strcpy(pmFileName, argv[i]);
+		} else if (strcmp("-i", argv[i]) == 0) {
+			interactive = true;
 		} else {
 			printf("Comando não reconhecido: '%s'\n", argv[i]);
 			return 1;
@@ -103,6 +107,7 @@ int main(int argc, char *argv[]) {
 		printf("O argumento '-o' é obrigatório!\n");
 		return 1;
 	}
+	Files_SetOutputDir(files, outputDir);
 
 	outputSVGFileName = malloc((strlen(entryFileName) + 4) * sizeof(char));
 	strcpy(outputSVGFileName, entryFileName);
@@ -113,38 +118,11 @@ int main(int argc, char *argv[]) {
 	if (entryFile == NULL) {
 		return 1;
 	}
+	Files_SetEntryFile(files, entryFile);
 
 	// Abertura dos arquivos referentes à consulta
-	char outputTXTFileName[64];
-	char outputQrySVGFileName[64];
-	if (queryFileName != NULL) {	
-		queryFile = openFile(baseDir, queryFileName, "r");
-		if (queryFile == NULL)
-			return 1;
-		
-		char noExtName[32];
-		// Copiar nome completo do arquivo de consulta
-		strcpy(noExtName, queryFileName);
-		// Remover diretório e extensão
-		removeDirAndExt(noExtName);
-
-		// Copiar nome do arquivo de entrada
-		strcpy(outputTXTFileName, entryFileName);
-		// Adicionar sufixo (que é o nome do arquivo de consulta)
-		addSuffix(outputTXTFileName, noExtName);
-		// Copiar o resultado para o arquivo SVG de consulta
-		strcpy(outputQrySVGFileName, outputTXTFileName);
-
-		// Atribuir as extensões correspondentes
-		changeExtension(outputTXTFileName, "txt");
-		changeExtension(outputQrySVGFileName, "svg");
-
-		outputTXTFile = openFile(outputDir, outputTXTFileName, "w");
-		if (outputTXTFile == NULL)
-			return 1;
-
-		outputQrySVGFile = openFile(outputDir, outputQrySVGFileName, "w");
-		if (outputQrySVGFile == NULL)
+	if (queryFileName != NULL) {
+		if (!Files_OpenQueryFiles(files, baseDir, entryFileName, queryFileName))
 			return 1;
 	}
 
@@ -153,17 +131,20 @@ int main(int argc, char *argv[]) {
 	if (outputSVGFile == NULL) {
 		return 1;
 	}
+	Files_SetOutputSVGFile(files, outputSVGFile);
 
 	if (ecFileName != NULL) {
 		ecFile = openFile(baseDir, ecFileName, "r");
 		if (ecFile == NULL)
 			return 1;
+		Files_SetEcFile(files, ecFile);
 	}
 
 	if (pmFileName != NULL) {
 		pmFile = openFile(baseDir, pmFileName, "r");
 		if (pmFile == NULL)
 			return 1;
+		Files_SetPmFile(files, pmFile);
 	}
 
 	// Processar comandos do .geo
@@ -175,29 +156,24 @@ int main(int argc, char *argv[]) {
 		if (!processQuery(queryFile, outputQrySVGFile, outputTXTFile, objList, outputDir, outputQrySVGFileName))
 			return 1;*/
 
-	Files files = Files_Create();
-	Files_SetEntryFile(files, entryFile);
-	Files_SetOutputSVGFile(files, outputSVGFile);
-	Files_SetOutputQryFile(files, outputQrySVGFile);
-	Files_SetQueryFile(files,queryFile);
-	Files_SetTxtFile(files, outputTXTFile);
-	Files_SetOutputDir(files, outputDir);
-	Files_SetSvgFileName(files, outputQrySVGFileName);
-	Files_SetEcFile(files, ecFile);
-	Files_SetPmFile(files, pmFile);
-
 	//processAll(entryFile, outputSVGFile, outputQrySVGFile, queryFile, outputTXTFile, outputDir, outputQrySVGFileName);
+	initializeTrees();
+    initializeTables();
+	
 	processAll(files);
 
+	if (interactive) {
+		startInteraction(files, baseDir, entryFileName);
+	}
+
+	destroyTables();
+    destroyTrees();
+
 	// Limpeza
-	Files_Destroy(files);
 
 	fclose(entryFile);
 	fclose(outputSVGFile);
-	if (queryFile != NULL) {
-		fclose(queryFile);
-		fclose(outputQrySVGFile);
-		fclose(outputTXTFile);
+	if (queryFileName != NULL) {
 		free(queryFileName);
 	}
 	if (baseDir != NULL)
@@ -214,5 +190,7 @@ int main(int argc, char *argv[]) {
 		free(pmFileName);
 		fclose(pmFile);
 	}
+
+	Files_Destroy(files);
 	//StList_Destroy(objList, Object_Destroy);
 }

@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <math.h>
+#include <float.h>
 #include "object.h"
 #include "circle.h"
 #include "rectangle.h"
@@ -38,5 +39,7 @@ double min(double a, double b);
 
 // Calcula o ângulo de um ponto em relação à origem
 double calculateAngle(double y, double x);
+
+bool nearlyEqual(double a, double b);
 
 #endif

@@ -75,6 +75,12 @@ Point Equip_GetPoint(Equip equipVoid) {
     return equip->point;
 }
 
+void Equip_Describe(Equip equipVoid, char *str) {
+    EquipPtr equip = (EquipPtr) equipVoid;
+    sprintf(str, "(%.2lf, %.2lf)\n%s", Point_GetX(equip->point), Point_GetY(equip->point),
+            equip->id);
+}
+
 void Equip_Destroy(Equip equipVoid) {
     EquipPtr equip = (EquipPtr) equipVoid;
     Point_Destroy(equip->point);

@@ -29,9 +29,9 @@ int Vertex_Compare(const void *p1Void, const void *p2Void) {
     else if (p1->angle > p2->angle)
         return 1;
     else if (p1->distance < p2->distance)
-        return -1;
-    else if (p1->distance > p2->distance)
         return 1;
+    else if (p1->distance > p2->distance)
+        return -1;
     else if (p1->starting && !p2->starting)
         return 1;
     else if (!p1->starting && p2->starting)

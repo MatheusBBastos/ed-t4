@@ -1,6 +1,7 @@
 #ifndef WALL_H
 #define WALL_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "../aux/point.h"
 #include "../aux/segment.h"
@@ -10,6 +11,8 @@
 typedef void *Wall;
 
 Wall Wall_Create(double x1, double y1, double x2, double y2);
+
+void Wall_Describe(Wall wallVoid, char *str);
 
 // Posiciona um ou dois segmentos no vetor 'vector' a partir do muro informado,
 // levando em conta se este novo segmento seria cortado pela semirreta partindo

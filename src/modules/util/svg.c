@@ -1,9 +1,10 @@
 #include "svg.h"
 
 void putSVGStart(FILE *file) {
+    // TODO: remover tamanho
     fputs("<svg " //width=\"30000\" height=\"30000\" 
           "xmlns=\"http://www.w3.org/2000/svg\" "
-          "xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n", file);
+          "xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"30000\" height=\"30000\">\n", file);
 }
 
 void putSVGQueryStart(FILE *file) {
@@ -173,12 +174,22 @@ void putSVGBuilding(Building b, void *fileVoid) {
             Building_GetH(b),
             "black",
             "1",
-            "blue");
+            Building_IsPainted(b) ? "gold" : "blue");
+    if (Building_IsHighlighted(b)) {
+        fprintf(file, "<rect x=\"%lf\" y=\"%lf\" width=\"%lf\" height=\"%lf\" stroke=\"%s\" stroke-width=\"%s\" fill=\"%s\"/>\n",
+                Building_GetX(b),
+                Building_GetY(b),
+                Building_GetW(b),
+                Building_GetH(b),
+                "deeppink",
+                "4",
+                "none");
+        }
 
     double textX = Building_GetX(b) + Building_GetW(b) / 2;
     double textY = Building_GetY(b) + Building_GetH(b) / 2 + 2;
-    fprintf(file, "<text x=\"%lf\" y=\"%lf\" font-size=\"8\" fill=\"%s\" %s>%.0lf</text>\n",
-            textX, textY, TEXT_FILL_COLOR, TEXT_CENTER, Building_GetNum(b));
+    fprintf(file, "<text x=\"%lf\" y=\"%lf\" font-size=\"10\" fill=\"%s\" %s %s>%d</text>\n",
+            textX, textY, TEXT_FILL_COLOR, TEXT_CENTER, TEXT_EXTRA, Building_GetNum(b));
 }
 
 void putSVGWall(Wall w, void *fileVoid) {
@@ -199,11 +210,11 @@ void putSVGSegment(FILE *file, double x1, double y1, double x2, double y2) {
             y2,
             "4");
     
-    fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"4\" fill=\"green\" />\n",
+    fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"4\" fill=\"green\"/>\n",
         x1,
         y1);
 
-    fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"3\" fill=\"red\" />\n",
+    fprintf(file, "<circle cx=\"%lf\" cy=\"%lf\" r=\"3\" fill=\"red\"/>\n",
         x2,
         y2);
 }
@@ -223,18 +234,29 @@ void putSVGBomb(FILE *file, double x, double y) {
         "55l17-17c4.7-4.7 4.7-12.3 0-17-4.7-4.7-12.3-4.7-17 0l-17 17c-4.7 4.7-4.7 12.3 0 17 4.8 4.7 12.4 4.7 17 0zm-67.8 "
         "0c4.7 4.7 12.3 4.7 17 0 4.7-4.7 4.7-12.3 0-17l-17-17c-4.7-4.7-12.3-4.7-17 0-4.7 4.7-4.7 12.3 0 17l17 17zm67.8 "
         "34c-4.7-4.7-12.3-4.7-17 0-4.7 4.7-4.7 12.3 0 17l17 17c4.7 4.7 12.3 4.7 17 0 4.7-4.7 4.7-12.3 0-17l-17-17zM112 "
-        "272c0-35.3 28.7-64 64-64 8.8 0 16-7.2 16-16s-7.2-16-16-16c-52.9 0-96 43.1-96 96 0 8.8 7.2 16 16 16s16-7.2 16-16z\"/>",
+        "272c0-35.3 28.7-64 64-64 8.8 0 16-7.2 16-16s-7.2-16-16-16c-52.9 0-96 43.1-96 96 0 8.8 7.2 16 16 16s16-7.2 16-16z\"/>\n",
         x - 6.5, y - 8.5);
 }
 
 void putSVGNode(FILE *file, double x, int y, bool red, char *description) {
-    fprintf(file, "<circle cx=\"%lf\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n", 
+    fprintf(file, "<circle cx=\"%lf\" cy=\"%d\" r=\"%d\" fill=\"%s\"/>\n", 
             x, y, TREE_NODE_RADIUS, red ? "red" : "black");
-    fprintf(file, "<text x=\"%lf\" y=\"%d\" fill=\"white\" font-size=\"3\" dominant-baseline=\"middle\" "
-                  "text-anchor=\"middle\">%s</text>\n", x, y, description);
+    char part1[64], part2[64];
+    int n;
+    sscanf(description, "%63[^\n]%n", part1, &n);
+    fprintf(file, "<text x=\"%lf\" y=\"%lf\" fill=\"white\" font-family=\"Arial\" font-size=\"3\" dominant-baseline=\"middle\" "
+                  "text-anchor=\"middle\" style=\"stroke:#000;stroke-width:0.1px;\">%s</text>\n", 
+                  x, y - 1.5, part1);
+        
+    if (strlen(description) > n + 1) {
+        sscanf(description + n + 1, "%63[^\n]", part2);
+        fprintf(file, "<text x=\"%lf\" y=\"%lf\" fill=\"white\" font-family=\"Arial\" font-size=\"3\" dominant-baseline=\"middle\" "
+                       "text-anchor=\"middle\" style=\"stroke:#000;stroke-width:0.1px;\">%s</text>\n", 
+                       x, y + 1.5, part2);
+    }
 }
 
-static double _generateTreeSVG(RBTree tree, FILE *file, Node node, int height, double xMin, double *x, char* (*describe)(Value)) {
+static double _generateTreeSVG(RBTree tree, FILE *file, Node node, int height, double xMin, double *x, void (*describe)(Value, char*)) {
     if (node == NULL) {
         *x = xMin;
         putSVGNode(file, *x, TREE_TOP_MARGIN + height * TREE_Y_SPACING, false, "nil");
@@ -253,17 +275,44 @@ static double _generateTreeSVG(RBTree tree, FILE *file, Node node, int height, d
     putSVGLine(file, *x, y, xLeft, yChild - TREE_NODE_RADIUS);
     putSVGLine(file, *x, y, xRight, yChild - TREE_NODE_RADIUS);
 
-    putSVGNode(file, *x, y, RBTreeN_GetColor(node) == RED, describe(RBTreeN_GetValue(tree, node)));
+    char description[64];
+    describe(RBTreeN_GetValue(tree, node), description);
+
+    putSVGNode(file, *x, y, RBTreeN_GetColor(node) == RED, description);
     
     return xMaxRight + TREE_X_SPACING;
 }
 
 
-void putSVGRBTree(RBTree tree, FILE *file, char* (*describe)(Value)) {
+void putSVGRBTree(FILE *file, RBTree tree, void (*describe)(Value, char*)) {
     putSVGStart(file);
     double x;
     _generateTreeSVG(tree, file, RBTree_GetRoot(tree), 0, TREE_LEFT_MARGIN, &x, describe);
     putSVGEnd(file);
+}
+
+void putSVGPolygon(FILE *file, Polygon polygon) {
+    fprintf(file, "<polygon points=\"");
+    for (void *seg = Polygon_GetFirstSeg(polygon); seg != NULL; seg = PolySeg_GetNext(seg)) {
+        fprintf(file, "%lf,%lf %lf,%lf ", PolySeg_GetX1(seg), PolySeg_GetY1(seg),
+                                          PolySeg_GetX2(seg), PolySeg_GetY2(seg));
+    }
+    fprintf(file, "\" style=\"fill: orange; fill-opacity: 0.5\" stroke-width=\"0.3\" stroke=\"black\"/>\n");
+}
+
+void putSVGCross(FILE *file, Building building) {
+    fprintf(file, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"stroke:rgb(255,0,0);stroke-width:%s\"/>\n",
+            Building_GetX(building),
+            Building_GetY(building),
+            Building_GetX(building) + Building_GetW(building),
+            Building_GetY(building) + Building_GetH(building),
+            STROKE_WIDTH);
+    fprintf(file, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"stroke:rgb(255,0,0);stroke-width:%s\"/>\n",
+            Building_GetX(building) + Building_GetW(building),
+            Building_GetY(building),
+            Building_GetX(building),
+            Building_GetY(building) + Building_GetH(building),
+            STROKE_WIDTH);
 }
 
 void putSVGEnd(FILE *file) {

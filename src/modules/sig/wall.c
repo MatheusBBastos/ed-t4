@@ -12,6 +12,13 @@ Wall Wall_Create(double x1, double y1, double x2, double y2) {
     return wall;
 }
 
+void Wall_Describe(Wall wallVoid, char *str) {
+    WallPtr wall = (WallPtr) wallVoid;
+    sprintf(str, "(%.2lf, %.2lf)\n(%.2lf, %.2lf)\n", 
+            Point_GetX(wall->point1), Point_GetY(wall->point1),
+            Point_GetX(wall->point2), Point_GetY(wall->point2));
+}
+
 Segment *Wall_PutSegments(Wall wallVoid, Segment *vector, double xSource, double ySource) {
     WallPtr wall = (WallPtr) wallVoid;
     double x1 = Point_GetX(wall->point1), y1 = Point_GetY(wall->point1);

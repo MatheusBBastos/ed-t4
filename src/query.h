@@ -1,20 +1,22 @@
 #ifndef QUERY_H
 #define QUERY_H
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "modules/aux/distance.h"
 #include "modules/aux/heapsort.h"
+#include "modules/aux/polygon.h"
 #include "modules/aux/vertex.h"
 #include "modules/data_structures/static_list.h"
 #include "modules/sig/block.h"
 #include "modules/sig/equipment.h"
 #include "modules/sig/geometry.h"
 #include "modules/sig/object.h"
-#include "modules/sig/svg.h"
+#include "modules/util/file_util.h"
+#include "modules/util/svg.h"
 #include "lists.h"
 #include "data.h"
-#include "file_util.h"
 
 // T1
 bool Query_Overlaps(FILE *txtFile, FILE *outputFile, char idA[], char idB[]);
@@ -46,6 +48,27 @@ bool Query_Fi(FILE *txtFile, FILE *outputFile, double x, double y, int ns, doubl
 bool Query_Fh(FILE *txtFile, FILE *outputFile, char signal, int k, char cep[], char face, double num);
 
 bool Query_Fs(FILE *txtFile, FILE *outputFile, int k, char cep[], char face, double num);
+/* ------------------------*/
+
+// T4
+
+bool Query_Brn(FILE *txtFile, FILE *outputFile, double x, double y, char *outputDir, char *arqPol);
+
+bool Query_M(FILE *txtFile, char *cep);
+
+bool Query_Mplg(FILE *txtFile, FILE *outputFile, char* baseDir, char *arqPolig);
+
+bool Query_Dm(FILE *txtFile, char *cpf);
+
+bool Query_De(FILE *txtFile, char *cnpj);
+
+bool Query_Mud(FILE *txtFile, char *cpf, char *cep, char face, int num, char *compl);
+
+bool Query_Eplg(FILE *txtFile, FILE *outputFile, char *baseDir, char *arqPolig, char *type);
+
+bool Query_Catac(FILE *outputFile, FILE *txtFile, char *baseDir, char *arqPolig);
+
+bool Query_Dmprbt(char *outputDir, char t, char *arq);
 /* ------------------------*/
 
 #endif

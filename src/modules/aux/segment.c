@@ -25,7 +25,7 @@ Segment Segment_CreateFromCoords(double x1, double y1, double x2, double y2, dou
     double distance2 = euclideanDistance(x2, y2, x, y);
     Vertex p1 = Vertex_Create(x1, y1, segment, angle1, distance1);
     Vertex p2 = Vertex_Create(x2, y2, segment, angle2, distance2);
-    if (angle1 > angle2) {
+    if (angle1 > angle2 || angle1 == angle2 && distance1 < distance2) {
         segment->pStart = p2;
         Vertex_SetStarting(p2, true);
         segment->pEnd = p1;
@@ -65,6 +65,10 @@ Segment *Segment_Cut(Segment segment, Segment *vector, double xInter, double xSo
     Vertex oldPEnd = Segment_GetPEnd(segment);
 
     if (Vertex_GetY(oldPEnd) == ySource) {
+        if (Vertex_GetY(oldPStart) > Vertex_GetY(oldPEnd)) {
+            Vertex_SetAngle(oldPEnd, PI);
+            return vector;
+        }
         Vertex_SetAngle(oldPEnd, -PI);
         Vertex_SetStarting(oldPEnd, true);
         Segment_SetPStart(segment, oldPEnd);
@@ -149,7 +153,7 @@ void Segment_SetDistance(Segment segmentVoid, double distance) {
 
 Vertex Segment_GetKey(Segment segmentVoid) {
     SegmentPtr segment = (SegmentPtr) segmentVoid;
-    return &segment->pStart;
+    return &segment->pEnd;
 }
 
 void Segment_Destroy(Segment segmentVoid) {

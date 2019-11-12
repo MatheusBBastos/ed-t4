@@ -1,6 +1,7 @@
 #ifndef EQUIPMENT_H
 #define EQUIPMENT_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -31,6 +32,8 @@ bool Equip_GetHighlighted(Equip equip);
 void Equip_SetHighlighted(Equip equip, bool highlighted);
 
 Point Equip_GetPoint(Equip equip);
+
+void Equip_Describe(Equip equip, char *str);
 
 void Equip_Destroy(Equip equip);
 

@@ -3,10 +3,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include "file_util.h"
 
 typedef void *Files;
 
 Files Files_Create();
+
+bool Files_OpenQueryFiles(Files *files, char *baseDir, char *entryFileName, char *queryFileName);
 
 FILE *Files_GetEntryFile(Files files);
 
@@ -22,9 +28,11 @@ FILE *Files_GetEcFile(Files files);
 
 FILE *Files_GetPmFile(Files files);
 
+char *Files_GetBaseDir(Files files);
+
 char *Files_GetOutputDir(Files files);
 
-char *Files_GetSvgFileName(Files files);
+char *Files_GetQrySVGFileName(Files files);
 
 void Files_SetEntryFile(Files files, FILE *entryFile);
 
@@ -42,7 +50,7 @@ void Files_SetPmFile(Files files, FILE *pmFile);
 
 void Files_SetOutputDir(Files files, char *outputDir);
 
-void Files_SetSvgFileName(Files files, char *svgFileName);
+void Files_SetQrySVGFileName(Files files, char *svgFileName);
 
 void Files_Destroy(Files files);
 

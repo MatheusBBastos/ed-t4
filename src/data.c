@@ -14,6 +14,9 @@ HashTable objTable;
 HashTable hydTable;
 HashTable cTowerTable;
 HashTable tLightTable;
+HashTable commTypeTable;
+HashTable commerceTable;
+HashTable personTable;
 
 void initializeTrees() {
     objTree = RBTree_Create(Point_Compare);
@@ -32,6 +35,10 @@ void initializeTables() {
     hydTable = HashTable_Create(1001);
     cTowerTable = HashTable_Create(1001);
     tLightTable = HashTable_Create(1001);
+
+    commTypeTable = HashTable_Create(1001);
+    commerceTable = HashTable_Create(1001);
+    personTable = HashTable_Create(1001);
 }
 
 void destroyTrees() {
@@ -51,6 +58,10 @@ void destroyTables() {
     HashTable_Destroy(hydTable, NULL);
     HashTable_Destroy(cTowerTable, NULL);
     HashTable_Destroy(tLightTable, NULL);
+
+    HashTable_Destroy(commTypeTable, CommerceType_Destroy);
+    HashTable_Destroy(commerceTable, Commerce_Destroy);
+    HashTable_Destroy(personTable, Person_Destroy);
 }
 
 RBTree getObjTree() {
@@ -103,4 +114,16 @@ HashTable getCTowerTable() {
 
 HashTable getTLightTable() {
     return tLightTable;
+}
+
+HashTable getCommTypeTable() {
+    return commTypeTable;
+}
+
+HashTable getCommerceTable() {
+    return commerceTable;
+}
+
+HashTable getPersonTable() {
+    return personTable;
 }

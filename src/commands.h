@@ -6,9 +6,9 @@
 #include "modules/sig/object.h"
 #include "modules/sig/block.h"
 #include "modules/sig/equipment.h"
-#include "modules/sig/svg.h"
 #include "modules/sig/geometry.h"
 #include "modules/util/files.h"
+#include "modules/util/svg.h"
 #include "query.h"
 #include "data.h"
 

@@ -1,91 +1,106 @@
 CC = gcc
-# TODO: remover -g
+# TODO: remover .g
 COMPILER_FLAGS = -std=c99 -fstack-protector-all -g
 LINKER_FLAGS = -lm
 EXEC_NAME = siguel
+ODIR = obj
 OBJECTS = main.o distance.o heapsort.o geometry.o object.o circle.o rectangle.o block.o equipment.o \
     segment.o vertex.o building.o wall.o file_util.o static_list.o svg.o commands.o query.o data.o \
-	comparators.o redblack_tree.o hash_table.o point.o text.o lists.o files.o
+	redblack_tree.o hash_table.o point.o text.o files.o commerce.o commerce_type.o \
+	person.o interaction.o polygon.o
+OBJ = $(patsubst %,$(ODIR)/%,$(OBJECTS))
 
 all: $(EXEC_NAME)
 
-$(EXEC_NAME): $(OBJECTS)
-	$(CC) $(OBJECTS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(EXEC_NAME) -Wall
+$(EXEC_NAME): $(OBJ)
+	$(CC) $(OBJ) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(EXEC_NAME) -Wall
 
-main.o: main.c file_util.h modules/sig/object.h commands.h
-	$(CC) -c main.c $(COMPILER_FLAGS)
+$(ODIR)/main.o: main.c modules/util/file_util.h modules/sig/object.h commands.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-distance.o: modules/aux/distance.c modules/aux/distance.h modules/sig/equipment.h
-	$(CC) -c modules/aux/distance.c $(COMPILER_FLAGS)
+$(ODIR)/distance.o: modules/aux/distance.c modules/aux/distance.h modules/sig/equipment.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-segment.o: modules/aux/segment.c modules/aux/segment.h modules/aux/vertex.h
-	$(CC) -c modules/aux/segment.c $(COMPILER_FLAGS)
+$(ODIR)/segment.o: modules/aux/segment.c modules/aux/segment.h modules/aux/vertex.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-vertex.o: modules/aux/vertex.c modules/aux/vertex.h modules/aux/segment.h
-	$(CC) -c modules/aux/vertex.c $(COMPILER_FLAGS)
+$(ODIR)/vertex.o: modules/aux/vertex.c modules/aux/vertex.h modules/aux/segment.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-point.o: modules/aux/point.c modules/aux/point.h
-	$(CC) -c modules/aux/point.c $(COMPILER_FLAGS)
+$(ODIR)/point.o: modules/aux/point.c modules/aux/point.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-heapsort.o: modules/aux/heapsort.c modules/aux/heapsort.h
-	$(CC) -c modules/aux/heapsort.c $(COMPILER_FLAGS)
+$(ODIR)/heapsort.o: modules/aux/heapsort.c modules/aux/heapsort.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-geometry.o: modules/sig/geometry.c modules/sig/geometry.h modules/sig/object.h
-	$(CC) -c modules/sig/geometry.c $(COMPILER_FLAGS)
+$(ODIR)/geometry.o: modules/sig/geometry.c modules/sig/geometry.h modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-object.o: modules/sig/object.c modules/sig/object.h
-	$(CC) -c modules/sig/object.c $(COMPILER_FLAGS)
+$(ODIR)/object.o: modules/sig/object.c modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-circle.o: modules/sig/circle.c modules/sig/circle.h
-	$(CC) -c modules/sig/circle.c $(COMPILER_FLAGS)
+$(ODIR)/circle.o: modules/sig/circle.c modules/sig/circle.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-rectangle.o: modules/sig/rectangle.c modules/sig/rectangle.h
-	$(CC) -c modules/sig/rectangle.c $(COMPILER_FLAGS)
+$(ODIR)/rectangle.o: modules/sig/rectangle.c modules/sig/rectangle.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-text.o: modules/sig/text.c modules/sig/text.h
-	$(CC) -c modules/sig/text.c $(COMPILER_FLAGS)
+$(ODIR)/text.o: modules/sig/text.c modules/sig/text.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-block.o: modules/sig/block.c modules/sig/block.h
-	$(CC) -c modules/sig/block.c $(COMPILER_FLAGS)
+$(ODIR)/block.o: modules/sig/block.c modules/sig/block.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-equipment.o: modules/sig/equipment.c modules/sig/equipment.h
-	$(CC) -c modules/sig/equipment.c $(COMPILER_FLAGS)
+$(ODIR)/equipment.o: modules/sig/equipment.c modules/sig/equipment.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-building.o: modules/sig/building.c modules/sig/building.h
-	$(CC) -c modules/sig/building.c $(COMPILER_FLAGS)
+$(ODIR)/building.o: modules/sig/building.c modules/sig/building.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-wall.o: modules/sig/wall.c modules/sig/wall.h
-	$(CC) -c modules/sig/wall.c $(COMPILER_FLAGS)
+$(ODIR)/wall.o: modules/sig/wall.c modules/sig/wall.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-file_util.o: file_util.c file_util.h
-	$(CC) -c file_util.c $(COMPILER_FLAGS)
+$(ODIR)/file_util.o: modules/util/file_util.c modules/util/file_util.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-static_list.o: modules/data_structures/static_list.c modules/data_structures/static_list.h
-	$(CC) -c modules/data_structures/static_list.c $(COMPILER_FLAGS)
+$(ODIR)/static_list.o: modules/data_structures/static_list.c modules/data_structures/static_list.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-svg.o: modules/sig/svg.c modules/sig/svg.h modules/sig/object.h modules/sig/circle.h modules/sig/rectangle.h
-	$(CC) -c modules/sig/svg.c $(COMPILER_FLAGS)
+$(ODIR)/svg.o: modules/util/svg.c modules/util/svg.h modules/sig/object.h modules/sig/circle.h modules/sig/rectangle.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-commands.o: commands.c commands.h file_util.h modules/data_structures/static_list.h modules/sig/svg.h modules/sig/geometry.h modules/sig/object.h
-	$(CC) -c commands.c $(COMPILER_FLAGS)
+$(ODIR)/commands.o: commands.c commands.h modules/util/file_util.h modules/data_structures/static_list.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-query.o: query.c query.h modules/data_structures/static_list.h modules/sig/svg.h modules/sig/geometry.h modules/sig/object.h
-	$(CC) -c query.c $(COMPILER_FLAGS)
+$(ODIR)/query.o: query.c query.h modules/data_structures/static_list.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-data.o: data.c data.h modules/data_structures/redblack_tree.h modules/data_structures/hash_table.h modules/aux/point.h
-	$(CC) -c data.c $(COMPILER_FLAGS)
+$(ODIR)/data.o: data.c data.h modules/data_structures/redblack_tree.h modules/data_structures/hash_table.h modules/aux/point.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-comparators.o: comparators.c comparators.h
-	$(CC) -c comparators.c $(COMPILER_FLAGS)
+$(ODIR)/redblack_tree.o: modules/data_structures/redblack_tree.c modules/data_structures/redblack_tree.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-redblack_tree.o: modules/data_structures/redblack_tree.c modules/data_structures/redblack_tree.h
-	$(CC) -c modules/data_structures/redblack_tree.c $(COMPILER_FLAGS)
+$(ODIR)/hash_table.o: modules/data_structures/hash_table.c modules/data_structures/hash_table.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-hash_table.o: modules/data_structures/hash_table.c modules/data_structures/hash_table.h
-	$(CC) -c modules/data_structures/hash_table.c $(COMPILER_FLAGS)
+$(ODIR)/files.o: modules/util/files.c modules/util/files.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-files.o: modules/util/files.c modules/util/files.h
-	$(CC) -c modules/util/files.c $(COMPILER_FLAGS)
+$(ODIR)/commerce_type.o: modules/sig/commerce_type.c modules/sig/commerce_type.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/commerce.o: modules/sig/commerce.c modules/sig/commerce.h modules/sig/building.h modules/sig/commerce_type.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/person.o: modules/sig/person.c modules/sig/person.h modules/sig/building.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/interaction.o: interaction.c interaction.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/polygon.o: modules/aux/polygon.c modules/aux/polygon.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
 clean:
-	rm -rf *.o
+	rm -rf obj/*.o
