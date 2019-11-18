@@ -26,9 +26,10 @@
 
 #define TREE_TOP_MARGIN 10
 #define TREE_LEFT_MARGIN 6
-#define TREE_X_SPACING 6
-#define TREE_Y_SPACING 20
-#define TREE_NODE_RADIUS 5
+#define TREE_X_SPACING 15
+#define TREE_Y_SPACING 35
+#define TREE_NODE_RADIUS 12
+#define TREE_TEXT_SIZE 8
 
 void putSVGStart(FILE *file);
 

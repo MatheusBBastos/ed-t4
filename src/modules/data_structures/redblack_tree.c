@@ -160,6 +160,15 @@ Node RBTree_GetRoot(RBTree treeVoid) {
         return tree->root;
 }
 
+Node RBTreeN_GetParent(RBTree treeVoid, Node nodeVoid) {
+    RBTreeImpl tree = (RBTreeImpl) treeVoid;
+    NodeImpl node = (NodeImpl) nodeVoid;
+    if (node->parent == tree->nil)
+        return NULL;
+    else
+        return node->parent;
+}
+
 Node RBTreeN_GetLeftChild(RBTree treeVoid, Node nodeVoid) {
     RBTreeImpl tree = (RBTreeImpl) treeVoid;
     NodeImpl node = (NodeImpl) nodeVoid;

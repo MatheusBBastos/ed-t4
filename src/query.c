@@ -1393,7 +1393,7 @@ bool Query_Dmprbt(char *outputDir, char t, char *arq) {
             putSVGRBTree(file, getBlockTree(), Block_Describe);
             break;
         case 'h':
-            putSVGRBTree(file, getBlockTree(), Equip_Describe);
+            putSVGRBTree(file, getHydTree(), Equip_Describe);
             break;
         case 's':
             putSVGRBTree(file, getTLightTree(), Equip_Describe);
@@ -1409,6 +1409,8 @@ bool Query_Dmprbt(char *outputDir, char t, char *arq) {
             break;
         default:
             printf("Árvore inexistente: %c!\n", t);
+            fclose(file);
+            return false;
     }
 
     fclose(file);

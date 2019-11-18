@@ -244,15 +244,15 @@ void putSVGNode(FILE *file, double x, int y, bool red, char *description) {
     char part1[64], part2[64];
     int n;
     sscanf(description, "%63[^\n]%n", part1, &n);
-    fprintf(file, "<text x=\"%lf\" y=\"%lf\" fill=\"white\" font-family=\"Arial\" font-size=\"3\" dominant-baseline=\"middle\" "
-                  "text-anchor=\"middle\" style=\"stroke:#000;stroke-width:0.1px;\">%s</text>\n", 
-                  x, y - 1.5, part1);
+    fprintf(file, "<text x=\"%lf\" y=\"%lf\" fill=\"white\" font-family=\"Arial\" font-size=\"%d\" dominant-baseline=\"middle\" "
+                  "text-anchor=\"middle\" style=\"stroke:#000;stroke-width:0.25\">%s</text>\n", 
+                  x, y - TREE_TEXT_SIZE / 2.0, TREE_TEXT_SIZE, part1);
         
     if (strlen(description) > n + 1) {
         sscanf(description + n + 1, "%63[^\n]", part2);
-        fprintf(file, "<text x=\"%lf\" y=\"%lf\" fill=\"white\" font-family=\"Arial\" font-size=\"3\" dominant-baseline=\"middle\" "
-                       "text-anchor=\"middle\" style=\"stroke:#000;stroke-width:0.1px;\">%s</text>\n", 
-                       x, y + 1.5, part2);
+        fprintf(file, "<text x=\"%lf\" y=\"%lf\" fill=\"white\" font-family=\"Arial\" font-size=\"%d\" dominant-baseline=\"middle\" "
+                       "text-anchor=\"middle\" style=\"stroke:#000;stroke-width:0.25\">%s</text>\n", 
+                       x, y + TREE_TEXT_SIZE / 2.0, TREE_TEXT_SIZE, part2);
     }
 }
 

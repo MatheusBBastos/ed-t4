@@ -44,6 +44,9 @@ Node RBTreeN_GetSuccessor(RBTree tree, Node node);
 // Retorna o nó raiz da árvore (NULL se não existir)
 Node RBTree_GetRoot(RBTree tree);
 
+// Retorna o pai do nó (NULL se não existir)
+Node RBTreeN_GetParent(RBTree tree, Node node);
+
 // Retorna o filho da esquerda do nó (NULL se não existir)
 Node RBTreeN_GetLeftChild(RBTree tree, Node node);
 
