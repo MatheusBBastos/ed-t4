@@ -1,5 +1,6 @@
 #include "interaction.h"
 
+#ifndef CURSES_ON
 void startInteraction(Files *files, char *baseDir, char *entryFileName) {
     printf("-- MODO INTERAÇÃO --\n");
     char buffer[128];
@@ -136,3 +137,10 @@ void startInteraction(Files *files, char *baseDir, char *entryFileName) {
         }
     } while (strcmp(command, "sai") != 0);
 }
+
+#else
+void startInteraction(Files *files, char *baseDir, char *entryFileName) {
+    startGui(files, baseDir, entryFileName);
+}
+
+#endif

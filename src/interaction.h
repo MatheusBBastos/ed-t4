@@ -6,6 +6,7 @@
 
 #include "modules/util/files.h"
 #include "commands.h"
+#include "gui.h"
 
 void startInteraction(Files *files, char *baseDir, char *entryFileName);
 

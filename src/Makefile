@@ -1,21 +1,28 @@
 CC = gcc
-# TODO: remover .g
-COMPILER_FLAGS = -std=c99 -fstack-protector-all -g
+COMPILER_FLAGS = -std=c99 -fstack-protector-all
 LINKER_FLAGS = -lm
 EXEC_NAME = siguel
 ODIR = obj
 OBJECTS = main.o distance.o heapsort.o geometry.o object.o circle.o rectangle.o block.o equipment.o \
     segment.o vertex.o building.o wall.o file_util.o static_list.o svg.o commands.o query.o data.o \
 	redblack_tree.o hash_table.o point.o text.o files.o commerce.o commerce_type.o \
-	person.o interaction.o polygon.o
+	person.o polygon.o
+INTERACTION = interaction.o
+INTERACTION_GUI = interaction_gui.o gui.o
+
 OBJ = $(patsubst %,$(ODIR)/%,$(OBJECTS))
+OBJ_INT = $(patsubst %,$(ODIR)/%,$(INTERACTION))
+OBJ_INT_GUI = $(patsubst %,$(ODIR)/%,$(INTERACTION_GUI))
 
 all: $(EXEC_NAME)
 
-$(EXEC_NAME): $(OBJ)
-	$(CC) $(OBJ) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(EXEC_NAME) -Wall
+$(EXEC_NAME): $(OBJ) $(OBJ_INT)
+	$(CC) $(OBJ) $(OBJ_INT) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(EXEC_NAME) -Wall
 
-$(ODIR)/main.o: main.c modules/util/file_util.h modules/sig/object.h commands.h
+$(EXEC_NAME)_gui: $(OBJ) $(OBJ_INT_GUI)
+	$(CC) $(OBJ) $(OBJ_INT_GUI) $(COMPILER_FLAGS) -D CURSES_ON $(LINKER_FLAGS) -lncurses -o $(EXEC_NAME) -Wall
+
+$(ODIR)/main.o: main.c modules/util/file_util.h modules/sig/object.h commands.h $(ODIR)
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
 $(ODIR)/distance.o: modules/aux/distance.c modules/aux/distance.h modules/sig/equipment.h
@@ -99,8 +106,17 @@ $(ODIR)/person.o: modules/sig/person.c modules/sig/person.h modules/sig/building
 $(ODIR)/interaction.o: interaction.c interaction.h
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
+$(ODIR)/interaction_gui.o: interaction.c interaction.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS) -lncurses -D CURSES_ON
+
 $(ODIR)/polygon.o: modules/aux/polygon.c modules/aux/polygon.h
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
+
+$(ODIR)/gui.o: gui.c gui.h
+	$(CC) -c $< -o $@ $(COMPILER_FLAGS) -lncurses -D CURSES_ON
+
+$(ODIR):
+	mkdir $@
 
 clean:
 	rm -rf obj/*.o
