@@ -75,7 +75,7 @@ void putSVGNode(FILE *file, double x, int y, bool red, char *description);
 
 void putSVGRBTree(FILE *file, RBTree tree, void (*describe)(Value, char*));
 
-void putSVGPolygon(FILE *file, Polygon polygon);
+void putSVGPolygon(FILE *file, Polygon polygon, char color[]);
 
 void putSVGCross(FILE *file, Building building);
 

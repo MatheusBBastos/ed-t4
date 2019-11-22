@@ -1,10 +1,9 @@
 #include "svg.h"
 
 void putSVGStart(FILE *file) {
-    // TODO: remover tamanho
     fputs("<svg " //width=\"30000\" height=\"30000\" 
           "xmlns=\"http://www.w3.org/2000/svg\" "
-          "xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"30000\" height=\"30000\">\n", file);
+          "xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n", file);
 }
 
 void putSVGQueryStart(FILE *file) {
@@ -291,13 +290,13 @@ void putSVGRBTree(FILE *file, RBTree tree, void (*describe)(Value, char*)) {
     putSVGEnd(file);
 }
 
-void putSVGPolygon(FILE *file, Polygon polygon) {
+void putSVGPolygon(FILE *file, Polygon polygon, char color[]) {
     fprintf(file, "<polygon points=\"");
     for (void *seg = Polygon_GetFirstSeg(polygon); seg != NULL; seg = PolySeg_GetNext(seg)) {
         fprintf(file, "%lf,%lf %lf,%lf ", PolySeg_GetX1(seg), PolySeg_GetY1(seg),
                                           PolySeg_GetX2(seg), PolySeg_GetY2(seg));
     }
-    fprintf(file, "\" style=\"fill: orange; fill-opacity: 0.5\" stroke-width=\"0.3\" stroke=\"black\"/>\n");
+    fprintf(file, "\" style=\"fill: %s; fill-opacity: 0.5\" stroke-width=\"0.3\" stroke=\"black\"/>\n", color);
 }
 
 void putSVGCross(FILE *file, Building building) {

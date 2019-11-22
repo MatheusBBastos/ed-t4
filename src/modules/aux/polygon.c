@@ -216,17 +216,6 @@ bool _checkIntersection(PolygonImpl polygon, double x1, double y1, double x2, do
     return false;
 }
 
-void Polygon_WriteSVG(Polygon polygonVoid, FILE *file) {
-    PolygonImpl polygon = (PolygonImpl) polygonVoid;
-    for (PolySegment seg = polygon->first; seg != NULL; seg = seg->next) {
-        fprintf(file, "<line x1=\"%lf\" y1=\"%lf\" x2=\"%lf\" y2=\"%lf\" style=\"stroke:rgb(0,0,0);stroke-width:0.5\"/>\n",
-            seg->x1,
-            seg->y1,
-            seg->x2,
-            seg->y2);
-    }
-}
-
 bool Polygon_IsPointInside(Polygon polygonVoid, double x, double y) {
     PolygonImpl polygon = (PolygonImpl) polygonVoid;
 

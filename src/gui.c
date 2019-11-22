@@ -81,7 +81,7 @@ char *getValueOf(RBTree tree, Node node, TreeType type) {
     return s;
 }
 
-void doneScreen(bool sucess, char *msg) {
+void doneScreen(bool success, char *msg) {
     WINDOW *done;
     if (msg == NULL) {
         done = newwin(3, 60, 24/2 - 3/2, 79/2 - 59/2);
@@ -89,7 +89,7 @@ void doneScreen(bool sucess, char *msg) {
         done = newwin(4, 60, 24/2 - 4/2, 79/2 - 59/2);
     }
 
-    if (!sucess) {
+    if (!success) {
         init_pair(67, COLOR_RED, -1);
         wattron(done, COLOR_PAIR(67));
         box(done, 0,0);
@@ -101,7 +101,7 @@ void doneScreen(bool sucess, char *msg) {
     wrefresh(done);
     char *s = "Concluído!";
     char *e = "Erro!";
-    if (sucess) {
+    if (success) {
         mvwprintw(done, 1, 60/2 - strlen(s)/2, "%s", s);
     } else{
         mvwprintw(done, 1, 60/2 - strlen(e)/2, "%s", e);
@@ -700,14 +700,14 @@ void navTree(TreeType type) {
     refresh();
 }
 
-void setResult(WINDOW *processamento, bool sucess) {
+void setResult(WINDOW *processamento, bool success) {
     for (int n = 2; n < 77; n++) {
         mvwaddch(processamento, 2, n, '#');
         wrefresh(processamento);
         refresh();
     }
     wattroff(processamento, COLOR_PAIR(5));
-    doneScreen(sucess, NULL);
+    doneScreen(success, NULL);
 }
 
 void processCommand(char *buffer, Files *files, char *baseDir, char *entryFileName) {

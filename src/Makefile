@@ -4,9 +4,9 @@ LINKER_FLAGS = -lm
 EXEC_NAME = siguel
 ODIR = obj
 OBJECTS = main.o distance.o heapsort.o geometry.o object.o circle.o rectangle.o block.o equipment.o \
-    segment.o vertex.o building.o wall.o file_util.o static_list.o svg.o commands.o query.o data.o \
-	redblack_tree.o hash_table.o point.o text.o files.o commerce.o commerce_type.o \
-	person.o polygon.o
+    segment.o vertex.o building.o wall.o file_util.o svg.o commands.o query.o data.o \
+    redblack_tree.o hash_table.o point.o text.o files.o commerce.o commerce_type.o \
+    person.o polygon.o
 INTERACTION = interaction.o
 INTERACTION_GUI = interaction_gui.o gui.o
 
@@ -70,16 +70,13 @@ $(ODIR)/wall.o: modules/sig/wall.c modules/sig/wall.h
 $(ODIR)/file_util.o: modules/util/file_util.c modules/util/file_util.h
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-$(ODIR)/static_list.o: modules/data_structures/static_list.c modules/data_structures/static_list.h
-	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
-
 $(ODIR)/svg.o: modules/util/svg.c modules/util/svg.h modules/sig/object.h modules/sig/circle.h modules/sig/rectangle.h
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-$(ODIR)/commands.o: commands.c commands.h modules/util/file_util.h modules/data_structures/static_list.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
+$(ODIR)/commands.o: commands.c commands.h modules/util/file_util.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
-$(ODIR)/query.o: query.c query.h modules/data_structures/static_list.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
+$(ODIR)/query.o: query.c query.h modules/util/svg.h modules/sig/geometry.h modules/sig/object.h
 	$(CC) -c $< -o $@ $(COMPILER_FLAGS)
 
 $(ODIR)/data.o: data.c data.h modules/data_structures/redblack_tree.h modules/data_structures/hash_table.h modules/aux/point.h

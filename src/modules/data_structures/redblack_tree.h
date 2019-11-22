@@ -62,8 +62,6 @@ Value RBTreeN_GetValue(RBTree tree, Node node);
 // Procura o primeiro elemento val que faz compFunc(val, comparingField) retornar true
 Value RBTree_FindWhere(RBTree treeVoid, bool compFunc(void*, void*), void *comparingField);
 
-void RBTree_GenerateSVG(RBTree treeVoid, FILE *file, char* (*describe)(Value));
-
 NodeColor RBTreeN_GetColor(Node node);
 
 #endif

@@ -8,14 +8,12 @@
 #include "modules/aux/heapsort.h"
 #include "modules/aux/polygon.h"
 #include "modules/aux/vertex.h"
-#include "modules/data_structures/static_list.h"
 #include "modules/sig/block.h"
 #include "modules/sig/equipment.h"
 #include "modules/sig/geometry.h"
 #include "modules/sig/object.h"
 #include "modules/util/file_util.h"
 #include "modules/util/svg.h"
-#include "lists.h"
 #include "data.h"
 
 // T1

@@ -878,7 +878,7 @@ bool Query_Brl(FILE *outputFile, double x, double y) {
     Polygon poly = Polygon_Create();
     
     _pointVisibility(outputFile, x, y, true, poly);
-    putSVGPolygon(outputFile, poly);
+    putSVGPolygon(outputFile, poly, "gold");
     Polygon_Destroy(poly);
 
     return true;
@@ -946,7 +946,7 @@ bool Query_Brn(FILE *txtFile, FILE *outputFile, double x, double y, char *output
     Polygon poly = Polygon_Create();
     
     _pointVisibility(outputFile, x, y, false, poly);
-    putSVGPolygon(outputFile, poly);
+    putSVGPolygon(outputFile, poly, "gold");
 
     Polygon_DumpToFile(poly, polyFile);
     fclose(polyFile);
@@ -1295,7 +1295,6 @@ bool Query_Catac(FILE *outputFile, FILE *txtFile, char *baseDir, char *arqPolig)
 
         // Excluir residentes
         _executeCatacResidents(residents, RBTree_GetRoot(residents), txtFile, true);
-        // TODO: excluir estabelecimentos comerciais
         fprintf(txtFile, "\t- Prédio %s\n", Building_GetKey(building));
         // Remover prédio das estruturas
         RBTree_Remove(getBuildingTree(), Building_GetPoint(building));
@@ -1329,7 +1328,6 @@ bool Query_Catac(FILE *outputFile, FILE *txtFile, char *baseDir, char *arqPolig)
 
         // Excluir residentes
         _executeCatacResidents(residents, RBTree_GetRoot(residents), txtFile, false);
-        // TODO: excluir estabelecimentos comerciais
         fprintf(txtFile, "\t- Quadra %s\n", Block_GetCep(block));
         // Remover quadra das estruturas
         RBTree_Remove(getBlockTree(), Block_GetPoint(block));
@@ -1374,7 +1372,7 @@ bool Query_Catac(FILE *outputFile, FILE *txtFile, char *baseDir, char *arqPolig)
     }
 
     // Desenhar polígono no SVG
-    putSVGPolygon(outputFile, poly);
+    putSVGPolygon(outputFile, poly, "white");
     Polygon_Destroy(poly);
 
     return true;

@@ -6,11 +6,9 @@
 #include "commands.h"
 #include "interaction.h"
 #include "modules/sig/object.h"
-#include "modules/data_structures/static_list.h"
 #include "modules/util/files.h"
 
 int main(int argc, char *argv[]) {
-
 	Files files = Files_Create();
 
 	bool interactive = false;
@@ -147,16 +145,6 @@ int main(int argc, char *argv[]) {
 		Files_SetPmFile(files, pmFile);
 	}
 
-	// Processar comandos do .geo
-	/*if (!processGeometry(entryFile, outputSVGFile, outputQrySVGFile, objList))
-		return 1;
-
-	// Processar comandos do .qry, se houver
-	if (queryFile != NULL)
-		if (!processQuery(queryFile, outputQrySVGFile, outputTXTFile, objList, outputDir, outputQrySVGFileName))
-			return 1;*/
-
-	//processAll(entryFile, outputSVGFile, outputQrySVGFile, queryFile, outputTXTFile, outputDir, outputQrySVGFileName);
 	initializeTrees();
     initializeTables();
 	
@@ -170,7 +158,6 @@ int main(int argc, char *argv[]) {
     destroyTrees();
 
 	// Limpeza
-
 	fclose(entryFile);
 	fclose(outputSVGFile);
 	if (queryFileName != NULL) {
@@ -192,5 +179,4 @@ int main(int argc, char *argv[]) {
 	}
 
 	Files_Destroy(files);
-	//StList_Destroy(objList, Object_Destroy);
 }

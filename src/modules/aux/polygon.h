@@ -33,8 +33,6 @@ bool Polygon_IsBlockInside(Polygon polygon, Block block, bool partially);
 
 bool Polygon_IsBuildingInside(Polygon polygon, Building building);
 
-void Polygon_WriteSVG(Polygon polygonVoid, FILE *file);
-
 double Polygon_GetMinX(Polygon polygon);
 
 double Polygon_GetMaxX(Polygon polygon);
